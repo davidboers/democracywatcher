@@ -13,10 +13,10 @@
 
 </head>
 
-<body style="display: flex;">
+<body>
 
-    <div class="rounded-container" style="display: flex; flex-direction: column; flex: 1;" id="container">
-        <div style="display: flex; place-items: center; gap: 1em;">
+    <div class="rounded-container" id="container">
+        <div class="graph-header">
             <h2 id="race-name"></h2>
             <div class="button-set">
                 <button id="go-back">Back</button>
@@ -29,7 +29,7 @@
                     id="unit">county</span>.</p>
         </div>
 
-        <svg style="flex: 1;">
+        <svg>
             <g id="mg-header"></g>
             <g id="graph">
                 <g id="counties"></g>
@@ -42,12 +42,31 @@
     </div>
 
     <style>
+        body {
+            display: flex;
+        }
+
         .county-g:hover {
             opacity: 0.5;
         }
 
         text {
             overflow: scroll;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                display: flow;
+            }
+
+            #container {
+                display: flow;
+                overflow-y: auto;
+            }
+
+            svg {
+                min-height: 0;
+            }
         }
     </style>
 </body>

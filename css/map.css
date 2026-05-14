@@ -17,6 +17,35 @@ svg {
     aspect-ratio: 550 / 550;
 }
 
+@media (max-width: 900px) {
+    #container {
+        flex-direction: column;
+        align-items: stretch;
+        height: auto;
+    }
+
+    #map-holder,
+    #core-container {
+        width: 100%;
+        flex: unset;
+        height: auto;
+    }
+
+    #map-upper-dashboard {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #map-holder {
+        min-height: 320px;
+    }
+
+    svg {
+        width: 100%;
+        height: auto;
+    }
+}
+
 svg * {
     vector-effect: non-scaling-stroke;
 }

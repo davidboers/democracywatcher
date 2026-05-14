@@ -13,6 +13,37 @@
     margin-bottom: 1.5rem;
 }
 
+@media (max-width: 780px) {
+    #race-info,
+    #stats {
+        grid-template-columns: 1fr;
+    }
+
+    .candidate-details {
+        grid-template-columns: 1fr;
+    }
+
+    .candidate-details .candidate-name,
+    .candidate-details .candidate-votes,
+    .candidate-details .candidate-share,
+    .candidate-details .candidate-tag {
+        text-align: left;
+    }
+
+    .candidate-color-box {
+        position: relative;
+        width: 36px;
+        height: 36px;
+        margin: 0.5rem;
+        left: 0;
+        top: 0;
+    }
+
+    .candidate-details-holder {
+        padding-left: 1rem;
+    }
+}
+
 #race-name {
     margin: 0 0 0.75rem;
     font-size: clamp(2rem, 3.2vw, 3rem);
