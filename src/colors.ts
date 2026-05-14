@@ -9,8 +9,8 @@ const color_palette = [
     'crimson',
     'teal',
     'pink',
-    'blue',
-    'yellow'
+    'royalblue',
+    'saddlebrown'
 ];
 
 export const EMPTY_COLOR = '#aaaaaa80';
