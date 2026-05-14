@@ -7,7 +7,8 @@ import { withLocalResults } from './data/media-export.js';
 import { BallotOption, totalVotes, LocalGroup, votesForCandidate, LocalReturn, candidateCompare, isStateWide, getPrecinctReturns } from './data/structures.js';
 
 function updateMarimekko(localReturns: LocalReturn[]) {
-    const width_coefficient = ($('svg').width() || 1600) * 0.95;
+    const width_ratio = (window.outerWidth <= 640) ? 0.85 : 0.95;
+    const width_coefficient = ($('svg').width() || 1600) * width_ratio;
     const height_coefficient = ($('svg').height() || 600) * 0.85;
 
     const statewide = isStateWide(localReturns);
