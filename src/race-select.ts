@@ -13,17 +13,20 @@ interface PanelSection {
 
 type PartyItems = { [party: string]: BallotItem[] };
 
-type PanelSectionName
-    = 'Congressional' | 'Statewide officers' | 'State Senate' | 'State House of Representatives'
-    | 'Georgia Supreme Court' | 'Georgia Court of Appeals' | 'Superior courts' | 'District attornies'
-    | 'Party questions'
-    | 'County executives' | 'County Commission' | 'Board of Education'
-    | 'State Court' | 'Chief Magistrate' | 'Juvenile Court Judge'
-    | 'Local referenda'
-    | 'Other local races';
+enum PanelSectionName {
+    Congressional, StatewideOfficers, StateSenate, StateHouseOfRepresentatives,
+    GeorgiaSupremeCourt, GeorgiaCourtOfAppeals, SuperiorCourts, DistrictAttornies,
+    PartyQuestions,
+    CountyExecutives, CountyCommission, BoardOfEducation,
+    StateCourt, ChiefMagistrate, JuvenileCourtJudge,
+    LocalReferenda,
+    OtherLocalRaces
+};
 
-const STATE_LEVEL_SECTIONS = ['Congressional', 'Statewide officers', 'State Senate', 'State House of Representatives',
-    'Georgia Supreme Court', 'Georgia Court of Appeals', 'Superior courts', 'District attornies', 'Party questions']
+const STATE_LEVEL_SECTIONS = [PanelSectionName.Congressional, PanelSectionName.StatewideOfficers,
+PanelSectionName.StateSenate, PanelSectionName.StateHouseOfRepresentatives, PanelSectionName.GeorgiaSupremeCourt,
+PanelSectionName.GeorgiaCourtOfAppeals, PanelSectionName.SuperiorCourts,
+PanelSectionName.DistrictAttornies, PanelSectionName.PartyQuestions]
 
 const STATEWIDE_OFFICERS = ['Governor', 'Lieutenant Governor', 'Secretary of State', 'Attorney General', 'Commissioner of Agriculture',
     'Commissioner of Insurance', 'State School Superintendent', 'Commissioner of Labor', 'PSC'];
@@ -32,54 +35,54 @@ function sortIntoSection(ballotItem: BallotItem): PanelSectionName {
     const testPrefixes = (qs: string[]) => qs.filter(q => ballotItem.name.startsWith(q)).length > 0;
 
     if (testPrefixes(['US Senate', 'US House']))
-        return 'Congressional';
+        return PanelSectionName.Congressional;
 
     if (testPrefixes(STATEWIDE_OFFICERS))
-        return 'Statewide officers';
+        return PanelSectionName.StatewideOfficers;
 
     if (ballotItem.name.startsWith('State Senate'))
-        return 'State Senate';
+        return PanelSectionName.StateSenate;
 
     if (ballotItem.name.startsWith('State House'))
-        return 'State House of Representatives';
+        return PanelSectionName.StateHouseOfRepresentatives;
 
     if (ballotItem.name.startsWith('Justice - Supreme Court of Georgia'))
-        return 'Georgia Supreme Court';
+        return PanelSectionName.GeorgiaSupremeCourt;
 
     if (ballotItem.name.startsWith('Judge - Court of Appeals of Georgia'))
-        return 'Georgia Court of Appeals';
+        return PanelSectionName.GeorgiaCourtOfAppeals;
 
     if (ballotItem.name.startsWith('Judge - Superior Court'))
-        return 'Superior courts';
+        return PanelSectionName.SuperiorCourts;
 
     if (ballotItem.name.startsWith('District Attorney'))
-        return 'District attornies';
+        return PanelSectionName.DistrictAttornies;
 
     if (ballotItem.name.startsWith('Party Question'))
-        return 'Party questions';
+        return PanelSectionName.PartyQuestions;
 
     if (testPrefixes(['Solicitor General', 'State Court Solicitor', 'Solicitor-General']))
-        return 'County executives';
+        return PanelSectionName.CountyExecutives;
 
     if (testPrefixes(['County Commission']))
-        return 'County Commission';
+        return PanelSectionName.CountyCommission;
 
     if (testPrefixes(['Board of Education', 'BOE', 'County BOE']))
-        return 'Board of Education';
+        return PanelSectionName.BoardOfEducation;
 
     if (testPrefixes(['State Court', 'Judge, State Court']))
-        return 'State Court';
+        return PanelSectionName.StateCourt;
 
     if (testPrefixes(['Chief Magistrate']))
-        return 'Chief Magistrate';
+        return PanelSectionName.ChiefMagistrate;
 
     if (testPrefixes(['Juvenile Court Judge']))
-        return 'Juvenile Court Judge';
+        return PanelSectionName.JuvenileCourtJudge;
 
     if (testPrefixes(['ESPLOST', 'Homestead Exemption', 'City of Lawrenceville Annexation']))
-        return 'Local referenda';
+        return PanelSectionName.LocalReferenda;
 
-    return 'Other local races';
+    return PanelSectionName.OtherLocalRaces;
 }
 
 function getParty(ballotItem: BallotItem): string | void {
@@ -174,11 +177,22 @@ function makeButtonFor(ballotItem: BallotItem): JQuery<HTMLElement> {
     return $button;
 }
 
+function compareBallotItems(a: BallotItem, b: BallotItem): number {
+    const districtRegex = /(?:District|Post) ([0-9]+)/;
+    const aPanel = sortIntoSection(a);
+    const bPanel = sortIntoSection(b);
+    const aDistrict = parseInt(districtRegex.exec(a.name)?.[1] || 'NaN');
+    const bDistrict = parseInt(districtRegex.exec(b.name)?.[1] || 'NaN');
+    return (aPanel !== bPanel) ? aPanel - bPanel :
+        (aDistrict && bDistrict) ? aDistrict - bDistrict
+            : 0; // Default is to keep them in the same order
+}
+
 function updateSelectionPanel(ballotItems: BallotItem[], filterState: boolean = false): BallotItem[] {
     const $selection_panel = $('#selection-panel');
     $selection_panel.empty();
 
-    ballotItems.sort((a, b) => (a.ballotOrder as number) - (b.ballotOrder as number));
+    ballotItems.sort(compareBallotItems);
     const sections = ballotItems.reduce((acc: PanelSection[], bi) => {
         const section_name = sortIntoSection(bi);
 
@@ -189,7 +203,7 @@ function updateSelectionPanel(ballotItems: BallotItem[], filterState: boolean = 
         const section = acc.find(s => s.name === section_name);
         const party = getParty(bi);
 
-        if (section_name === 'Other local races' && !filterState) {
+        if (section_name === PanelSectionName.OtherLocalRaces && !filterState) {
             console.log(bi.name);
             return acc;
         }
@@ -215,11 +229,13 @@ function updateSelectionPanel(ballotItems: BallotItem[], filterState: boolean = 
     }, []);
 
     for (let section of sections) {
+        const section_name = PanelSectionName[section.name].replace(/(?<!^)([A-Z])/g, ' $1').replace(' Of ', ' of ');
+
         if (section.partisan) {
             const template = $('#selection-panel-section-temp').html();
             const $section = $(`<section>${template}</section>`);
 
-            $section.find('.section-panel-header').html(section.name);
+            $section.find('.section-panel-header').html(section_name);
 
             for (let party in section.races as PartyItems) {
                 $section.find(`.race-select-party.${party}`).each(function () {
@@ -235,7 +251,7 @@ function updateSelectionPanel(ballotItems: BallotItem[], filterState: boolean = 
             const template = $('#selection-panel-section-np-temp').html();
             const $section = $(`<section class="race-select-party np">${template}</section>`);
 
-            $section.find('.section-panel-header').html(section.name);
+            $section.find('.section-panel-header').html(section_name);
 
             for (let ballotItem of (section.races as BallotItem[])) {
                 $section.find('.section-panel-races').append(makeButtonFor(ballotItem));
