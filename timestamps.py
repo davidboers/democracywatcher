@@ -21,4 +21,5 @@ def results_timestamps():
     return jsonify(result)
 
 if __name__ == '__main__':
+    print('Running timestamp app')
     app.run()
