@@ -1,7 +1,9 @@
-import { changeSelection } from './side.js';
-import { EMPTY_COLOR, getMapShadedColor, getMapSolidColor } from '../colors.js';
+import { changeSelection, showInspectionGradient, showReportingKey } from './side.js';
+import { getMapShadedColor, getMapSolidColor, pickReportingColor } from '../colors.js';
+
 import { combineReportingStatuses } from '../data/reporting.js';
 import { LocalReturn } from '../data/structures.js';
+
 import { findLocalReturn } from './draw.js';
 
 type ColorWorker = (localReturn: LocalReturn) => string;
@@ -15,14 +17,7 @@ function getGradientColor(localReturn: LocalReturn): string {
 }
 
 function getReportingColor(localReturn: LocalReturn): string {
-    let reportingStatus = combineReportingStatuses(localReturn.reportingStatus);
-
-    switch (reportingStatus) {
-        case 'Not Reported': return EMPTY_COLOR;
-        case 'Partially Reported': return '#aaa';
-        case 'Election Night Complete': return '#242424';
-        case 'Fully Reported': return '#008000';
-    }
+    return pickReportingColor(combineReportingStatuses(localReturn.reportingStatus));
 }
 
 function colorMap(worker: ColorWorker, localReturns: LocalReturn[], path_chain: any, border_chain: any) {
@@ -52,6 +47,17 @@ export function recolorMap(localReturns: LocalReturn[], path_chain: any, border_
 
     function updateToggle(id: string, worker: any) {
         $(`#${id}`).off('click').on('click', function () {
+            const selected_geo = $('#map-geo .selected').attr('id');
+            if (selected_geo && ['set-county', 'set-precinct'].includes(selected_geo)) {
+                if (id === 'set-shade') {
+                    showInspectionGradient(localReturns[0].ballotItem.ballotOptions);
+                } else if (id === 'set-reporting') {
+                    showReportingKey();
+                } else {
+                    $('#not-hover').empty();
+                }
+            }
+
             colorMap(worker, localReturns, path_chain, border_chain);
             changeSelection('map-toggle', id);
         });

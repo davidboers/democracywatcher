@@ -1,4 +1,5 @@
 
+import { ReportingStatus } from './data/reporting.js';
 import { BallotOption, leading, totalVotes, votesFor } from './data/structures.js';
 
 const color_palette = [
@@ -53,6 +54,15 @@ export function getMapSolidColor(all_options: BallotOption[]): string {
     return getMapColorWorker(all_options, getColor);
 }
 
+export function pickReportingColor(reportingStatus: ReportingStatus) {
+    switch (reportingStatus) {
+        case 'Not Reported': return EMPTY_COLOR;
+        case 'Partially Reported': return '#aaa';
+        case 'Election Night Complete': return '#242424';
+        case 'Fully Reported': return '#008000';
+    }
+}
+
 // Gradients
 
 export function getMapShadedColor(all_options: BallotOption[]): string {
@@ -90,6 +100,23 @@ export function gradientPick(color: string, ratio: number) {
     const [r1, g1, b1] = [r, g, b].map(toHex);
 
     return `#${r1}${g1}${b1}`;
+}
+
+export function createInspectionGradient(ballotOptions: BallotOption[]): JQuery<HTMLElement> {
+    const $gradient = $('<div id="gradient-inspect"></div>');
+    $gradient.append(`<div class="gradient-header"></div>`);
+    for (let r = 0; r <= 1; r += 0.1)
+        $gradient.append(`<div class="gradient-header">${Math.round(r * 100)}</div>`);
+    for (let ballotOption of ballotOptions) {
+        $gradient.append(`<span class="gradient-margin">${ballotOption.name}</span>`);
+        let color = getColor(ballotOptions, ballotOption);
+
+        for (let r = 0; r <= 1; r += 0.1) {
+            $gradient.append(`<div class="gradient-color-display" style="background-color:${gradientPick(color, r)};"></div>`);
+        }
+    }
+
+    return $gradient;
 }
 
 // Hex tools

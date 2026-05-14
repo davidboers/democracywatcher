@@ -89,20 +89,6 @@ export function drawMap(topology: any, localReturns: LocalReturn[], border_topol
 
     $('#not-hover').empty();
 
-    const $gradient = $('#gradient-inspect');
-    $gradient.empty();
-    $gradient.append(`<div class="gradient-header"></div>`);
-    for (let r = 0; r <= 1; r += 0.1)
-        $gradient.append(`<div class="gradient-header">${Math.round(r * 100)}</div>`);
-    for (let ballotOption of localReturns[0].ballotItem.ballotOptions) {
-        $gradient.append(`<span class="gradient-margin">${ballotOption.name}</span>`);
-        let color = getColor(localReturns[0].ballotItem.ballotOptions, ballotOption);
-
-        for (let r = 0; r <= 1; r += 0.1) {
-            $gradient.append(`<div class="gradient-color-display" style="background-color:${gradientPick(color, r)};"></div>`);
-        }
-    }
-
     return [localReturns, path_chain, border_chain]
 
 }

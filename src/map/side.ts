@@ -1,6 +1,7 @@
-import { EMPTY_COLOR, getColor } from '../colors.js';
+import { ReportingStatus } from '../data/reporting.js';
 import { BallotOption, leading, LocalReturn, totalVotes } from '../data/structures.js';
 
+import { createInspectionGradient, EMPTY_COLOR, getColor, pickReportingColor } from '../colors.js';
 import { regionIDName } from '../regions.js';
 import { preciseShare } from '../utils.js';
 
@@ -11,11 +12,32 @@ export function changeSelection(groupID: string, selection: string) {
     $(`#${selection}`).addClass('selected');
 }
 
+export function getNotHover() {
+    const $not_hover = $('#not-hover');
+    $not_hover.empty();
+    return $not_hover;
+}
+
+export function showInspectionGradient(ballotOptions: BallotOption[]) {
+    getNotHover().append(createInspectionGradient(ballotOptions));
+}
+
+export function showReportingKey() {
+    const $not_hover = getNotHover();
+    const $table = $('<table id="reporting-key"></table>');
+
+    (['Not Reported', 'Partially Reported', 'Election Night Complete', 'Fully Reported'] as ReportingStatus[]).forEach((status) => {
+        $table.append(`<tr><td style="background-color: ${pickReportingColor(status)}"></td><td>${status}</td></tr>`);
+    });
+
+    $not_hover.append($table);
+}
+
 // Regional strength (for regions and congressional districts)
 
 export function buildRegionalStrengthBreakdown(localReturns: LocalReturn[]) {
     const $template = $('#reg-strength-breakdown-temp');
-    const $not_hover = $('#not-hover');
+    const $not_hover = getNotHover();
     $not_hover.append($template.html());
     const $tbody = $not_hover.find('.reg-strength-list').first();
 

@@ -6,7 +6,7 @@ import { getRegionReturns, regionIDName, regions } from './regions.js';
 import { queryRace, redirectWithRaceName } from './utils.js';
 
 import { drawMap } from './map/draw.js';
-import { buildRegionalStrengthBreakdown, changeSelection } from './map/side.js';
+import { buildRegionalStrengthBreakdown, changeSelection, showInspectionGradient, showReportingKey } from './map/side.js';
 import { recolorMap } from './map/color-map.js';
 import { calculateViewBox } from './map/animations.js';
 import { setUpProjection, STATE_HOUSE, STATE_SENATE } from './map/projections.js';
@@ -50,6 +50,15 @@ async function updateWithPrecincts(race_name: string) {
     const county_topology = await fetch('src/topo/GA-COUNTIES.json').then(r => r.json());
     return withLocalResults(localReturns => drawMap(topology, getPrecinctReturns(localReturns), county_topology), race_name)
         .then(recolorWorker);
+}
+
+async function checkIfShowInspectionGradient(localReturns: LocalReturn[]) {
+    if ($('#map-toggle .selected').attr('id') === 'set-shade')
+        showInspectionGradient(localReturns[0].ballotItem.ballotOptions);
+    else if ($('#map-toggle .selected').attr('id') === 'set-reporting')
+        showReportingKey();
+    else
+        $('#not-hover').empty();
 }
 
 // Set up sidebar
@@ -112,14 +121,14 @@ function setUpSidebar(race_name: string, countyReturns: LocalReturn[]) {
     }
 
     $('#set-county').on('click', function () {
-        updateWithCounties(race_name);
+        updateWithCounties(race_name).then(checkIfShowInspectionGradient);
         changeSelection('map-geo', 'set-county');
         $('#warn-projections').hide();
     });
 
-    $('#set-precincts').on('click', function () {
-        updateWithPrecincts(race_name);
-        changeSelection('map-geo', 'set-precincts');
+    $('#set-precinct').on('click', function () {
+        updateWithPrecincts(race_name).then(checkIfShowInspectionGradient);
+        changeSelection('map-geo', 'set-precinct');
         $('#warn-projections').hide();
     });
 

@@ -4,7 +4,7 @@ import { ballotItemReportingStatusFromPrecinctLevel, BallotOption, County, leadi
 
 import { recolorMap } from './color-map.js';
 import { drawMap } from './draw.js';
-import { buildRegionalStrengthBreakdown, changeSelection } from './side.js';
+import { buildRegionalStrengthBreakdown, changeSelection, getNotHover } from './side.js';
 
 export async function setUpProjection(race_name: string, topojsonPath: string, buttonID: string, clipGroup: ClipGroup) {
     const topology = await fetch(topojsonPath).then(r => r.json());
@@ -158,7 +158,7 @@ export function createTally(ref: ChamberReference, localReturns: LocalReturn[]):
 
 export function buildLegislativeDistrictBreakdown(legislativeTally: LegislativeTally) {
     const $template = $('#leg-district-breakdown-temp');
-    const $not_hover = $('#not-hover');
+    const $not_hover = getNotHover();
     $not_hover.append($template.html());
 
     let gop_total = 0;

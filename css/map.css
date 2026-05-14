@@ -111,9 +111,9 @@ svg * {
 /* Gradient inspect */
 
 #gradient-inspect {
-    /*display: grid; */
-    display:none;
+    display: grid;
     gap: 1px;
+    width: 100%;
 }
 
 .gradient-header {
@@ -122,9 +122,25 @@ svg * {
 
 .gradient-margin {
     text-align: right;
+    padding: 0 0.25rem;
     overflow-x: clip;
 }
 
 .gradient-color-display {
     border-radius: 0.25em;
+}
+
+/* Reporting key */
+
+#reporting-key {
+    display: grid;
+    width: max-content;
+}
+
+#reporting-key tr td:nth-child(1) {
+    width: 1.5em;
+}
+
+#reporting-key tr td:nth-child(2) {
+    width: max-content;
 }
