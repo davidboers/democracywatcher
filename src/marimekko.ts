@@ -1,13 +1,12 @@
 
-import { regions, findRegion, regionIDName, getRegionReturns } from './regions.js';
+import { regions, findRegion, regionIDName } from './regions.js';
 import { candidateLegend, getColor } from './colors.js';
-import { createJQuerySVG, queryRace, redirectWithRaceName, setupAbstract } from './utils.js';
+import { createJQuerySVG, setupAbstract } from './utils.js';
 
 import { withLocalResults } from './data/media-export.js';
 import { BallotOption, totalVotes, LocalGroup, votesForCandidate, LocalReturn, candidateCompare, isStateWide, getPrecinctReturns } from './data/structures.js';
 
 function updateMarimekko(localReturns: LocalReturn[]) {
-    console.log('this should not be seen');
     const width_coefficient = ($('svg').width() || 1600) * 0.95;
     const height_coefficient = ($('svg').height() || 600) * 0.85;
 

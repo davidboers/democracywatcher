@@ -1,7 +1,7 @@
-import { candidateLegend, getColor } from './colors.js';
 import { getFullResults } from './data/media-export.js';
 import { BallotItem, BallotOption, totalVotes, votesFor } from './data/structures.js';
 
+import { candidateLegend, getColor } from './colors.js';
 import { createJQuerySVG, formatTimestamp, preciseShare, setupAbstract } from './utils.js';
 
 type TimestampedFile = {

@@ -39,7 +39,6 @@ export function leading(ballotOptions: BallotOption[]): BallotOption | string {
     return ballotOptions[0];
 }
 
-/// Deprecate
 export function votesForCandidate(option: BallotOption, ballotItem: BallotItem): number {
     return ballotItem.ballotOptions.find(c => option.name == c.name)?.voteCount || 0;
 }
