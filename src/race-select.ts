@@ -3,7 +3,7 @@ import * as MediaExport from './data/media-export.js';
 import * as TotalVotes from './data/total-votes.js';
 import { callRace, Runoff } from './race-caller.js';
 import { setRace } from './race.js';
-import { queryCounty, queryRace } from './utils.js';
+import { queryCounty, queryRace, redirectWithRaceName } from './utils.js';
 
 interface PanelSection {
     name: PanelSectionName,
@@ -317,9 +317,8 @@ void function () {
 
     void function () {
         $('#back-to-select').on('click', () => {
-            importAndUpdate();
-            $('#race-container').hide();
-            $('#selector-container').show();
+            // Clear race_name from url query
+            redirectWithRaceName('./race.html');
         });
     }();
 

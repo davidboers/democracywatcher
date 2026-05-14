@@ -60,11 +60,13 @@ const URL_BASE = (window.location.origin.includes('dawieboers.com'))
     ? 'https://www.dawieboers.com/democracywatcher/'
     : window.location.origin;
 
-export function redirectWithRaceName(doc: string, race_name: string, county?: string) {
+export function redirectWithRaceName(doc: string, race_name?: string, county?: string) {
     const url = new URL(doc, URL_BASE);
-    url.searchParams.set('race_name', race_name);
-    if (county) {
-        url.searchParams.set('county', county);
+    if (race_name) {
+        url.searchParams.set('race_name', race_name);
+        if (county) {
+            url.searchParams.set('county', county);
+        }
     }
     window.location.href = url.toString();
 }
@@ -75,10 +77,4 @@ export function queryRace(): string | null {
 
 export function queryCounty(): string | null {
     return new URLSearchParams(window.location.search).get('county');
-}
-
-export function clearRaceQueries() {
-    const params = new URLSearchParams(window.location.search);
-    params.delete('race_name');
-    params.delete('county');
 }
