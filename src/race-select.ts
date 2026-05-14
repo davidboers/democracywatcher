@@ -166,7 +166,6 @@ function makeButtonFor(ballotItem: BallotItem): JQuery<HTMLElement> {
     }(callRace(ballotItem));
 
     $button.on('click', function () {
-        console.log(ballotItem)
         setRace(ballotItem);
         $('#selector-container').hide();
         $('#race-container').show();
