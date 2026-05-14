@@ -69,11 +69,15 @@ function drawProgress(timestampedBallotItems: TimestampedBallotItem[]) {
             return g;
         }
 
+        let lasty = null;
         for (const timestamp of timestamps) {
             const g = (updateLines[timestamp] ||= createUpdateG(timestamp));
             const y = getY(height, timeline[timestamp]);
+            if (y === lasty) continue;
             const share_label = createJQuerySVG(`<text x="5" y="${y}" fill="${color}">${preciseShare(timeline[timestamp] * 100)}</text>`);
             $(g).find('.share-indicator').first().append(share_label);
+            lasty = y;
+            // Any update <g> tags that don't contain any share labels will be eliminated later.
         }
     }
 
@@ -96,6 +100,11 @@ function drawProgress(timestampedBallotItems: TimestampedBallotItem[]) {
         })[0];
 
         if (!closestUpdate || closestUpdate === currentUpdate) {
+            return;
+        }
+
+        if (closestUpdate && $(closestUpdate).find('.share-indicator').first().children().length === 0) {
+            closestUpdate.remove();
             return;
         }
 
@@ -171,9 +180,7 @@ function drawLine(width: number, height: number, timeline: Timeline) {
         yl = yi;
     }
 
-    if (timestamps.length < 2) {
-        return `M0 ${y0} H${width}`;
-    }
+    d = `${d}H${width}`;
 
     return d;
 }
