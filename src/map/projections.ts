@@ -3,11 +3,11 @@ import { getLocalResults, localReturnsForRace } from '../data/media-export.js';
 import { ballotItemReportingStatusFromPrecinctLevel, BallotOption, County, leading, LocalReturn } from '../data/structures.js';
 
 import { recolorMap } from './color-map.js';
-import { drawMap } from './draw.js';
+import { drawMap, fetchTopography } from './draw.js';
 import { buildRegionalStrengthBreakdown, changeSelection, getNotHover } from './side.js';
 
 export async function setUpProjection(race_name: string, topojsonPath: string, buttonID: string, clipGroup: ClipGroup) {
-    const topology = await fetch(topojsonPath).then(r => r.json());
+    const topology = await fetchTopography(topojsonPath);
     getLocalResults()
         .then(counties => getClippedRaces(clipGroup, counties, race_name))
         .then(localReturns => drawMap(topology, localReturns))

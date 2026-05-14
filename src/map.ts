@@ -5,7 +5,7 @@ import { County, getPrecinctReturns, isStateWide, LocalReturn } from './data/str
 import { getRegionReturns, regionIDName, regions } from './regions.js';
 import { queryRace, redirectWithRaceName } from './utils.js';
 
-import { drawMap } from './map/draw.js';
+import { drawMap, fetchTopography } from './map/draw.js';
 import { buildRegionalStrengthBreakdown, changeSelection, showInspectionGradient, showReportingKey } from './map/side.js';
 import { recolorMap } from './map/color-map.js';
 import { calculateViewBox } from './map/animations.js';
@@ -16,7 +16,7 @@ function recolorWorker([localReturns, path_chain, border_chain]: [LocalReturn[],
 }
 
 async function updateWithRegions(race_name: string) {
-    const topology = await fetch('src/topo/GA-REGION.json').then(r => r.json());
+    const topology = await fetchTopography('src/topo/GA-REGION.json');
     return withLocalResults(localReturns => {
         localReturns = getRegionReturns(regions, localReturns);
         localReturns.sort((a, b) => Object.keys(regions).indexOf(a.countyName) - Object.keys(regions).indexOf(b.countyName));
@@ -38,16 +38,16 @@ async function updateWithDivisions(race_name: string) {
 }
 
 async function updateWithCounties(race_name: string) {
-    const topology = await fetch('src/topo/GA-COUNTIES.json').then(r => r.json());
+    const topology = await fetchTopography('src/topo/GA-COUNTIES.json');
     return withLocalResults(localReturns => drawMap(topology, localReturns), race_name)
         .then(recolorWorker);
 }
 
 async function updateWithPrecincts(race_name: string) {
-    const topology = await fetch('src/topo/GA-PRECINCTS.json').then(r => r.json());
+    const topology = await fetchTopography('src/topo/GA-PRECINCTS.json');
     topology.objects.paths = { geometries: topology.objects.objects.geometries, type: 'GeometryCollection' };
     topology.objects.paths.geometries.map((path: any) => path.properties.name = `${path.properties.COUNTY} - ${path.properties.PRECINCT_N}`);
-    const county_topology = await fetch('src/topo/GA-COUNTIES.json').then(r => r.json());
+    const county_topology = await fetchTopography('src/topo/GA-COUNTIES.json');
     return withLocalResults(localReturns => drawMap(topology, getPrecinctReturns(localReturns), county_topology), race_name)
         .then(recolorWorker);
 }

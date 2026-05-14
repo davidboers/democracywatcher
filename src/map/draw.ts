@@ -90,7 +90,6 @@ export function drawMap(topology: any, localReturns: LocalReturn[], border_topol
     $('#not-hover').empty();
 
     return [localReturns, path_chain, border_chain]
-
 }
 
 export function findLocalReturn(localReturns: LocalReturn[], d: TopoJsonObject) {
@@ -98,5 +97,12 @@ export function findLocalReturn(localReturns: LocalReturn[], d: TopoJsonObject) 
     if (typeof name === 'number') {
         name = `${name}`;
     }
+
     return localReturns.find(lr => lr.countyName.replace(' County', '').toLowerCase() === name.toLowerCase());
+}
+
+export async function fetchTopography(path: string) {
+    return fetch(path, {
+        cache: 'force-cache'
+    }).then(r => r.json());
 }
