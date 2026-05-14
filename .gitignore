@@ -1,0 +1,12 @@
+__pycache__
+.vscode
+package-lock.json
+node_modules
+protection_chamber
+dist
+uploading.md
+todo.md
+
+# Data files
+data/*
+latest.json

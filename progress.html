@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Georgia Election Results</title>
+    <link rel="stylesheet" href="css/all.css">
+    <link rel="stylesheet" href="css/graphs.css">
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+    <script src="dist/progress.js" type="module"></script>
+
+</head>
+
+<body>
+    <div class="rounded-container" id="container">
+        <div style="display: flex; place-items: center; gap: 1em;">
+            <h2 id="race-name"></h2>
+            <div class="button-set">
+                <button id="go-back">Back</button>
+            </div>
+            <div id="candidates-legend"></div>
+        </div>
+
+        <p id="loading">Loading...</p>
+        <p id="error"></p>
+
+        <svg>
+            <g id="graph" transform="translate(2, 2)">
+                <g id="lines" stroke-width="3" fill="none"></g>
+                <g id="updates"></g>
+                <g id="markings"></g>
+            </g>
+            <g id="mg-footer"></g>
+        </svg>
+    </div>
+</body>
+
+</html>

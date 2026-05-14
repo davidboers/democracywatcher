@@ -1,0 +1,101 @@
+
+#container {
+    display: flex;
+    place-items: center;
+}
+
+#map-holder {
+    flex: 55%;
+    height: 90%;
+    display: flex;
+    place-content: center;
+}
+
+svg {
+    width: auto;
+    height: auto;
+    aspect-ratio: 550 / 550;
+}
+
+svg * {
+    vector-effect: non-scaling-stroke;
+}
+
+#core-container {
+    flex: 45%;
+    display: flex;
+    flex-direction: column;
+    height: 95%;
+}
+
+#map-upper-dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    place-content: center;
+}
+
+#side-display {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    place-content: center;
+}
+
+#not-hover {
+    place-items: center;
+    place-content: center;
+    height: 100%;
+    padding: 10px;
+}
+
+.reg-strength-breakdown {
+    height: 100%;
+}
+
+.reg-strength-breakdown td, .reg-strength-breakdown th {
+    padding: 5px 10px;
+}
+
+.reg-strength-breakdown tr td:nth-child(1) {
+    text-align: right;
+}
+
+.reg-strength-breakdown tr td:nth-child(2) {
+    text-align: center;
+}
+
+.reg-strength-breakdown tr td:nth-child(3) {
+    text-align: center;
+}
+
+#candidate-list-mini {
+    margin-block: 0;
+}
+
+.leg-breakdown-tally,
+.leg-breakdown-tally-total {
+    text-align: center;
+}
+
+/* Gradient inspect */
+
+#gradient-inspect {
+    /*display: grid; */
+    display:none;
+    gap: 1px;
+}
+
+.gradient-header {
+    grid-row: 1;
+}
+
+.gradient-margin {
+    text-align: right;
+    overflow-x: clip;
+}
+
+.gradient-color-display {
+    border-radius: 0.25em;
+}

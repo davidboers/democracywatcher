@@ -1,0 +1,57 @@
+import { EMPTY_COLOR, getColor } from '../colors.js';
+import { BallotOption, leading, LocalReturn, totalVotes } from '../data/structures.js';
+
+import { regionIDName } from '../regions.js';
+import { preciseShare } from '../utils.js';
+
+export function changeSelection(groupID: string, selection: string) {
+    $(`#${groupID} button.selected`).each(function () {
+        $(this).removeClass('selected');
+    });
+    $(`#${selection}`).addClass('selected');
+}
+
+// Regional strength (for regions and congressional districts)
+
+export function buildRegionalStrengthBreakdown(localReturns: LocalReturn[]) {
+    const $template = $('#reg-strength-breakdown-temp');
+    const $not_hover = $('#not-hover');
+    $not_hover.append($template.html());
+    const $tbody = $not_hover.find('.reg-strength-list').first();
+
+    const grand_total = totalVotes(localReturns.map(lr => lr.ballotItem.ballotOptions).flat());
+    for (const localReturn of localReturns) {
+        const ballotOptions = localReturn.ballotItem.ballotOptions;
+        const total_votes = totalVotes(ballotOptions);
+
+        const leader = leading(ballotOptions);
+        const winning_points =
+            (leader === 'Awaiting Results') ? '-'
+                : (leader === 'Tie') ? '='
+                    : pointDifferenceF(leader as BallotOption, ballotOptions[1], total_votes);
+
+        const votebase_share = total_votes / grand_total * 100;
+        const color = (typeof leader === 'string') ? EMPTY_COLOR : getColor(ballotOptions, leader);
+
+        $tbody.append(`
+            <tr id="region-select-${regionIDName(localReturn.countyName)}">
+                <td>${localReturn.countyName}</td>
+                <td><div style="width: 100%; padding: 5px; background-color:${color}; color: white;">${winning_points}</div></td>
+                <td>${preciseShare(votebase_share)}</td>
+            </tr>
+        `.trim());
+    }
+
+    return localReturns;
+}
+
+function pointDifferenceF(leader: BallotOption, runnerUp: BallotOption, total_votes: number): string {
+    return `+${Math.round(pointDifference(leader, runnerUp, total_votes))}`;
+}
+
+function pointDifference(leader: BallotOption, runnerUp: BallotOption, total_votes: number): number {
+    const shareA = leader.voteCount / total_votes * 100;
+    const shareB = runnerUp.voteCount / total_votes * 100;
+    return shareA - shareB;
+}
+

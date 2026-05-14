@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Georgia Election Results</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <link rel="stylesheet" href="css/all.css">
+    <link rel="stylesheet" href="css/race.css">
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+    <script src="dist/race.js" type="module"></script>
+    <script src="dist/race-select.js" type="module"></script>
+
+</head>
+
+<body>
+
+    <div style="overflow-y: auto;" id="race-container" class="rounded-container" hidden>
+        <div>
+            <h2 id="race-name"></h2>
+            <div id="race-info">
+                <div id="status">Status: <span id="status-indicator" style="display: contents;"></span><br><span id="status-special"></span>
+                </div>
+                <div style="display: grid;">
+                    <button id="swap-party">Swap Party</button>
+                    <div class="button-set">
+                        <button id="back-to-select" title="Back to list of races"><i class="fa-solid fa-rotate-left"></i></button>
+                        <button id="map" title="Map"><i class="fa-solid fa-map"></i></button>
+                        <button id="marimekko" title="Marimekko"><i class="fa-solid fa-chart-area"></i></button>
+                        <button id="progress-tracker" title="Progress tracker"><i class="fa-solid fa-chart-line"></i></button>
+                    </div>
+                </div>
+                <div id="reporting">Reporting:
+                    <div class="reporting-bar bar">
+                        <div id="reporting-bar-filled"></div>
+                        <div class="bar-butt"></div>
+                    </div>
+                    <span id="reporting-percentage"></span>
+                </div>
+            </div>
+        </div>
+        <div id="filter-note" hidden></div>
+        <div id="candidate-list">
+
+        </div>
+        <div id="stats">
+            <div style="place-content: center;">Blank: <span id="blank-votes-indicator"></span> (<span id="blank-votes-share"></span>)</div>
+            <div style="place-content: center;">Total votes: <span id="total-votes-indicator"></span>
+                <div class="bar">
+                    <div class="turnout-bar-filled dem"></div>
+                    <div class="turnout-bar-filled gop"></div>
+                    <div class="turnout-bar-filled np"></div>
+                </div>
+            </div>
+            <div class="button-set">
+                <button id="filter-early-voting" class="filter-button" title="Early in Person">E</button>
+                <button id="filter-absentee" class="filter-button" title="Absentee by Mail">A</button>
+                <button id="filter-election-day" class="filter-button" title="Election Day">ED</button>
+                <button id="filter-provisional" class="filter-button" title="Provisional">P</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="selector-container" hidden>
+        <p style="text-align: center;">Data source: <a href="https://results.sos.ga.gov/results/public/Georgia">Georgia Secretary of
+                State</a> | <a href="https://github.com/davidboers/democracywatcher/">Source code</a> | <a
+                href="https://www.dawieboers.com/democracywatcher/">dawieboers.com/democracywatcher/</a></p>
+        <div id="select-filter">
+            <label for="filter-by-race-type">Select:</label>
+            <select id="filter-by-race-type" class="filter-select">
+                <option value="all">All races</option>
+                <option value="contested">Contested</option>
+                <option value="incumbent-trailing">Incumbent trailing/defeated</option>
+                <option value="to-runoff">Going to runoff</option>
+            </select>
+
+            <label for="filter-by-party">Party:</label>
+            <select id="filter-by-party" class="filter-select">
+                <option value="all"></option>
+                <option value="dem" class="dem">Dem</option>
+                <option value="gop" class="gop">GOP</option>
+                <option value="np" class="np">NP</option>
+            </select>
+
+            <label for="filter-by-county">County level races:</label>
+            <select id="filter-by-county" class="filter-select"></select>
+        </div>
+
+        <div id="selection-panel"></div>
+    </div>
+
+    <template id="candidate-tag-won">
+        <span class="color: green;"><i class="fa-solid fa-check"></i></span>
+    </template>
+
+    <template id="candidate-tag-runoff">
+        <span class="runoff">Runoff</span>
+    </template>
+
+    <template id="candidate-tag-short">
+        <span class="more-to-avoid-runoff"></span> more votes to avoid runoff
+    </template>
+
+    <template id="selection-panel-section-temp">
+        <!-- <section> -->
+        <h2 class="section-panel-header"></h2>
+        <div class="race-select-party dem">
+            <h3 class="dem">Democratic:</h3>
+            <div class="section-panel-races"></div>
+        </div>
+        <div class="race-select-party gop">
+            <h3 class="gop">Republican:</h3>
+            <div class="section-panel-races"></div>
+        </div>
+        <!-- </section> -->
+    </template>
+
+    <template id="selection-panel-section-np-temp">
+        <!-- <section class="race-select-party np"> -->
+        <h2 class="section-panel-header"></h2>
+        <div class="section-panel-races"></div>
+        <!-- </section> -->
+    </template>
+
+</body>
+
+</html>

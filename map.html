@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Georgia Election Results</title>
+    <link rel="stylesheet" href="css/all.css">
+    <link rel="stylesheet" href="css/race.css">
+    <link rel="stylesheet" href="css/map.css">
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="dist/race.js" type="module"></script>
+    <script src="dist/map.js" type="module"></script>
+
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="map-holder">
+            <svg>
+
+            </svg>
+        </div>
+
+        <div id="core-container" class="rounded-container">
+            <div id="map-upper-dashboard">
+                <div id="map-toggle" class="button-set">
+                    <button id="set-solid" class="selected">Solid</button>
+                    <button id="set-shade">Shaded by %</button>
+                    <button id="set-reporting">Reporting</button>
+                </div>
+
+                <div style="border-left: 2px solid darkgray; height: 100%;"></div>
+
+                <div class="button-set">
+                    <button id="metro-zoom">Zoom to Metro ATL</button>
+                    <button id="go-back">Back</button>
+                </div>
+            </div>
+
+            <p id="warn-projections" hidden><i>Note:</i> District projections are approximate.</p>
+
+            <div id="side-display">
+                <div id="not-hover"></div>
+                <div id="candidate-list-mini" hidden></div>
+            </div>
+
+            <div id="gradient-inspect">
+
+            </div>
+
+            <div id="map-geo" class="button-set">
+                <button id="set-region">Regions</button>
+                <button id="set-cd">Congressional Districts</button>
+                <button id="set-sd">Senate Districts</button>
+                <button id="set-hd">House Districts</button>
+                <button id="set-county" class="selected">Counties</button>
+                <button id="set-precincts">Precincts</button>
+            </div>
+        </div>
+    </div>
+
+    <template id="reg-strength-breakdown-temp">
+        <table class="reg-strength-breakdown">
+            <tr>
+                <th></th>
+                <th>Leader</th>
+                <th title="Proportion of total votes for all candidates in this race, as counted so far.">% votebase</th>
+            </tr>
+            <tbody class="reg-strength-list"></tbody>
+        </table>
+    </template>
+
+    <template id="leg-district-breakdown-temp">
+        <table class="leg-district-breakdown">
+            <tr>
+                <th colspan="4">Breakdown by Party as per 2024 elections</th>
+            </tr>
+            <tr>
+                <th></th>
+                <th class="gop">GOP</th>
+                <th class="dem">Dem</th>
+                <th>Total</th>
+            </tr>
+            <tbody class="candidate-list-lb"></tbody>
+            <tr>
+                <th>Total</th>
+                <th class="leg-breakdown-sub gop"></th>
+                <th class="leg-breakdown-sub dem"></th>
+                <th class="leg-breakdown-big-total"></th>
+            </tr>
+        </table>
+    </template>
+
+</body>
+
+</html>

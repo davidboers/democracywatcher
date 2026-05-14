@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Georgia Election Results</title>
+    <link rel="stylesheet" href="css/all.css">
+    <link rel="stylesheet" href="css/graphs.css">
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+    <script src="dist/marimekko.js" type="module"></script>
+
+</head>
+
+<body style="display: flex;">
+
+    <div class="rounded-container" style="display: flex; flex-direction: column; flex: 1;" id="container">
+        <div style="display: flex; place-items: center; gap: 1em;">
+            <h2 id="race-name"></h2>
+            <div class="button-set">
+                <button id="go-back">Back</button>
+            </div>
+            <div id="candidates-legend"></div>
+        </div>
+
+        <div>
+            <p style="margin-block-end: 0;">The width of each bar corresponds to the number of votes cast in that <span
+                    id="unit">county</span>.</p>
+        </div>
+
+        <svg style="flex: 1;">
+            <g id="mg-header"></g>
+            <g id="graph">
+                <g id="counties"></g>
+                <g id="markings" stroke-width="1" stroke="#000"></g>
+                <g id="line-labels"></g>
+                <g id="group-borders" fill="none" stroke="#000000" stroke-width="1.5"></g>
+            </g>
+            <g id="mg-footer"></g>
+        </svg>
+    </div>
+
+    <style>
+        .county-g:hover {
+            opacity: 0.5;
+        }
+
+        text {
+            overflow: scroll;
+        }
+    </style>
+</body>
+
+</html>
