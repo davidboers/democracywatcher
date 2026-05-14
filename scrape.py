@@ -4,12 +4,14 @@ import schedule
 import json
 import re
 import requests
+from pathlib import Path
 from datetime import datetime
 
 # Local
 import timestamps as ts
 
-hold = False
+hold = False # Note: holding will delete the contents of the data folder
+just_once = True # Toggle in prod mode
 spanish_regex = r'\s?\/.+?(?=$| - (?:Dem|Rep)| \()'
 
 last_version = {}
@@ -94,20 +96,26 @@ def job():
 def flattenGroupResults(groupResults):
     return dict([(gr['groupName'], gr['voteCount'] if gr['voteCount'] != None else -1) for gr in groupResults])
 
-# Hold until a minute divisible by 5 arises
+# Hold 7 on May 19
 
 if hold:
     n = datetime.now()
-    g = datetime(n.year, n.month, n.day, n.hour, 5 - (n.minute % 5), n.second)
+    g = datetime(2026, 5, 19, 19, 0, 0)
     s = max((g - n).seconds, 0)
     time.sleep(s)
+
+    print('Appointed time arrived.')
+    for data_file in Path('data/').iterdir():
+        if data_file.is_file():
+            data_file.unlink()
 
 job()
 
 # Schedule
 
-#schedule.every(5).minutes.do(job)
+if not just_once:
+    schedule.every(5).minutes.do(job)
 
-#while True:
-#    schedule.run_pending()
-#    time.sleep(1)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
