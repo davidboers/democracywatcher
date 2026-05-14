@@ -33,7 +33,7 @@ export function drawMap(topology: any, localReturns: LocalReturn[], border_topol
         .attr('fill', 'none')
         .attr('stroke', 'white');
 
-    // Hover (maybe move to side.ts?)
+    // Hover
 
     let pause_hover = false;
     const $candidate_list_mini = $('#candidate-list-mini');
@@ -43,26 +43,29 @@ export function drawMap(topology: any, localReturns: LocalReturn[], border_topol
         $('#not-hover').show();
     }
 
+    function switchHover(d: TopoJsonObject) {
+        const target_name = (typeof d.properties.name === 'number'
+            || d.properties.name.replace(/[0-9]+/, '').length === 0)
+            ? `District ${d.properties.name}`
+            : d.properties.name
+        $candidate_list_mini.append(`<h2>${target_name}</h2>`);
+
+        const localReturn = findLocalReturn(localReturns, d);
+        if (!localReturn) return;
+        const ballotItem = localReturn.ballotItem;
+        const total_votes = totalVotes(ballotItem.ballotOptions);
+        $('#not-hover').hide();
+        ballotItem.ballotOptions
+            .toSorted(candidateCompare)
+            .map(bo => makeListEntry(bo, total_votes, ballotItem))
+            .map($list_entry => $candidate_list_mini.append($list_entry));
+    }
+
     svg.on('mouseover', (event: any) => {
         const target = d3.select(event.target);
 
         if (target.classed('hoverable') && !pause_hover) {
-            const d: TopoJsonObject = target.data()[0];
-            const target_name = (typeof d.properties.name === 'number'
-                || d.properties.name.replace(/[0-9]+/, '').length === 0)
-                ? `District ${d.properties.name}`
-                : d.properties.name
-            $candidate_list_mini.append(`<h2>${target_name}</h2>`);
-
-            const localReturn = findLocalReturn(localReturns, d);
-            if (!localReturn) return;
-            const ballotItem = localReturn.ballotItem;
-            const total_votes = totalVotes(ballotItem.ballotOptions);
-            $('#not-hover').hide();
-            ballotItem.ballotOptions
-                .toSorted(candidateCompare)
-                .map(bo => makeListEntry(bo, total_votes, ballotItem))
-                .map($list_entry => $candidate_list_mini.append($list_entry));
+            switchHover(target.data()[0]);
         }
 
     }).on('mouseout', () => {
@@ -73,11 +76,15 @@ export function drawMap(topology: any, localReturns: LocalReturn[], border_topol
     }).on('click', (event: any) => {
         const target = d3.select(event.target);
 
-        if (target.classed('hoverable') || pause_hover) {
-            pause_hover = !pause_hover;
-            if (!pause_hover) restoreBeforeHover();
-        }
+        if (target.classed('hoverable')) {
+            pause_hover = true;
+            $candidate_list_mini.empty();
+            switchHover(target.data()[0]);
 
+        } else {
+            pause_hover = false;
+            restoreBeforeHover();
+        }
     });
 
     $('#not-hover').empty();
