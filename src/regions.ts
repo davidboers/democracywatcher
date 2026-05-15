@@ -54,7 +54,7 @@ export const regions: RegionList = {
 };
 
 export const regionViewBoxes: { [key: string]: [number, number, number, number] } = {
-    'North Georgia': [0, 0, 0.58, 0.2164],
+    'North Georgia': [0, -0.15, 0.58, 0.2164],
     'West Georgia': [-0.0667, 0.1636, 0.3911, 0.3927],
     'Metro Atlanta': [0.1544, 0.0945, 0.2889, 0.2909],
     'East Georgia': [0.3178, 0.0091, 0.3911, 0.3927],
@@ -77,7 +77,7 @@ export function findRegion(regionList: RegionList, county: string) {
 }
 
 export function regionIDName(name: string) {
-    return name.replace(' ', '-').toLowerCase();
+    return name.replaceAll(' ', '-').toLowerCase();
 }
 
 export function getRegionReturns(regionList: RegionList, localReturns: LocalReturn[]): LocalReturn[] {

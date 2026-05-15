@@ -1,6 +1,6 @@
 
 import { withLocalResults } from './data/media-export.js';
-import { County, getPrecinctReturns, isStateWide, LocalReturn } from './data/structures.js';
+import { County, getPrecinctReturns, isStateWide, LocalReturn, totalVotes } from './data/structures.js';
 
 import { divisions, divisionsIn, getRegionReturns, regionIDName, regions, regionViewBoxes } from './regions.js';
 import { queryRace, redirectWithRaceName } from './utils.js';
@@ -25,6 +25,7 @@ async function updateWithRegions(race_name: string) {
         recolorWorker(drawMap(topology, divisionReturns));
         const [_, region_path_chain, region_border_chain] = drawMap(topology, regionReturns, null, true);
         recolorMap(regionReturns, region_path_chain, region_border_chain);
+        const total_votes = totalVotes(divisionReturns.map(dr => dr.ballotItem.ballotOptions).flat());
 
         function buildClickableRegionalBreakdown() {
             buildRegionalStrengthBreakdown(regionReturns);
@@ -35,15 +36,15 @@ async function updateWithRegions(race_name: string) {
                 const theseDivisionReturns = divisionReturns.filter(dr => divisionsIn[regionReturn.jurisName].includes(dr.jurisName));
                 row.css('cursor', 'pointer');
                 row.off().on('click', () => {
-                    region_border_chain.attr('stroke', 'black');
-                    updateWithDivisions(regionReturn.jurisName, theseDivisionReturns);
+                    region_border_chain.attr('stroke', 'black').attr('stroke-width', '2px');
+                    updateWithDivisions(regionReturn.jurisName, theseDivisionReturns, total_votes);
                     $('.num-header').first()
                         .html('<button><i class="fa-solid fa-rotate-left"></i></button>')
                         .off('click')
                         .on('click', () => {
                             buildClickableRegionalBreakdown();
                             zoomToFull();
-                            region_border_chain.attr('stroke', 'white');
+                            region_border_chain.attr('stroke', 'white').attr('stroke-width', '1px');
                             $(`svg #${id}`).removeAttr('transform');
                         });
                 });
@@ -54,10 +55,10 @@ async function updateWithRegions(race_name: string) {
     }, race_name);
 }
 
-async function updateWithDivisions(regionName: string, divisionReturns: LocalReturn[]) {
+async function updateWithDivisions(regionName: string, divisionReturns: LocalReturn[], total_votes: number) {
     $(`svg #${regionIDName(regionName)}`).attr('transform', 'translate(1000)');
     zoomTo(calculateViewBox(...regionViewBoxes[regionName]));
-    buildRegionalStrengthBreakdown(divisionReturns, true, true);
+    buildRegionalStrengthBreakdown(divisionReturns, true, true, total_votes);
 }
 
 async function updateWithCounties(race_name: string) {

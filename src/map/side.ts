@@ -35,7 +35,7 @@ export function showReportingKey() {
 
 // Regional strength (for regions and congressional districts)
 
-export function buildRegionalStrengthBreakdown(localReturns: LocalReturn[], doNumber: boolean = false, doListMembers: boolean = false) {
+export function buildRegionalStrengthBreakdown(localReturns: LocalReturn[], doNumber: boolean = false, doListMembers: boolean = false, grand_total?: number) {
     const $template = $('#reg-strength-breakdown-temp');
     const $not_hover = getNotHover();
     $not_hover.append($template.html());
@@ -47,7 +47,7 @@ export function buildRegionalStrengthBreakdown(localReturns: LocalReturn[], doNu
     if (!doListMembers)
         $not_hover.find('.members-header').remove();
 
-    const grand_total = totalVotes(localReturns.map(lr => lr.ballotItem.ballotOptions).flat());
+    grand_total = grand_total || totalVotes(localReturns.map(lr => lr.ballotItem.ballotOptions).flat());
     for (const i in localReturns) {
         const num = parseInt(i) + 1;
         const localReturn = localReturns[i];
