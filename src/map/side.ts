@@ -35,14 +35,22 @@ export function showReportingKey() {
 
 // Regional strength (for regions and congressional districts)
 
-export function buildRegionalStrengthBreakdown(localReturns: LocalReturn[]) {
+export function buildRegionalStrengthBreakdown(localReturns: LocalReturn[], doNumber: boolean = false, doListMembers: boolean = false) {
     const $template = $('#reg-strength-breakdown-temp');
     const $not_hover = getNotHover();
     $not_hover.append($template.html());
     const $tbody = $not_hover.find('.reg-strength-list').first();
 
+    if (!doNumber)
+        $not_hover.find('.num-header').remove();
+
+    if (!doListMembers)
+        $not_hover.find('.members-header').remove();
+
     const grand_total = totalVotes(localReturns.map(lr => lr.ballotItem.ballotOptions).flat());
-    for (const localReturn of localReturns) {
+    for (const i in localReturns) {
+        const num = parseInt(i) + 1;
+        const localReturn = localReturns[i];
         const ballotOptions = localReturn.ballotItem.ballotOptions;
         const total_votes = totalVotes(ballotOptions);
 
@@ -55,11 +63,14 @@ export function buildRegionalStrengthBreakdown(localReturns: LocalReturn[]) {
         const votebase_share = total_votes / grand_total * 100;
         const color = (typeof leader === 'string') ? EMPTY_COLOR : getColor(ballotOptions, leader);
 
+        /// Add list of counties
         $tbody.append(`
             <tr id="region-select-${regionIDName(localReturn.countyName)}">
-                <td>${localReturn.countyName}</td>
-                <td><div style="width: 100%; padding: 5px; background-color:${color}; color: white;">${winning_points}</div></td>
-                <td>${preciseShare(votebase_share)}</td>
+                ${(doNumber) ? `<td class="reg-brk-num">${num}</td>` : ''}
+                <td class="reg-brk-name">${localReturn.countyName}</td>
+                <td class="reg-brk-points"><div style="width: 100%; padding: 5px; background-color:${color}; color: white;">${winning_points}</div></td>
+                <td class="reg-brk-votebase">${preciseShare(votebase_share)}</td>
+                ${(doListMembers) ? '<td><i class="fa-solid fa-circle-info"></i></td>' : ''}
             </tr>
         `.trim());
     }

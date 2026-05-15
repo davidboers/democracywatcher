@@ -1,27 +1,30 @@
-import { getColor, gradientPick } from '../colors.js';
 import { candidateCompare, LocalReturn, totalVotes } from '../data/structures.js';
 import { makeListEntry } from '../race.js';
+import { regionIDName } from '../regions.js';
 
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
 import * as topojson from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
 
-export function drawMap(topology: any, localReturns: LocalReturn[], border_topology?: any): [LocalReturn[], any, any] {
+export function drawMap(topology: any, localReturns: LocalReturn[], border_topology?: any, noClear?: boolean): [LocalReturn[], any, any] {
     const width = $('svg').width();
     const height = $('svg').height();
 
+    topology = structuredClone(topology);
     topology.objects.paths.geometries = topology.objects.paths.geometries.filter((d: any) => findLocalReturn(localReturns, d));
 
     const paths = topojson.feature(topology, topology.objects.paths);
     const borders = topojson.mesh((border_topology || topology), (border_topology || topology).objects.paths, (a, b) => a !== b);
 
     const svg = d3.select('svg');
-    svg.selectAll('*').remove();
+    if (!noClear)
+        svg.selectAll('*').remove();
     const projection = d3.geoMercator().fitSize([width, height], paths);
     const path = d3.geoPath(projection);
 
     const path_chain = svg.selectAll('path.paths')
         .data(paths.features)
         .join('path')
+        .attr('id', (d: TopoJsonObject) => regionIDName(d.properties.name))
         .attr('class', 'hoverable')
         .attr('d', path);
 

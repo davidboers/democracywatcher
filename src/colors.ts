@@ -13,7 +13,7 @@ const color_palette = [
     'saddlebrown'
 ];
 
-export const EMPTY_COLOR = '#aaaaaa80';
+export const EMPTY_COLOR = '#aaaaaa';
 
 export function getColor(all_options: BallotOption[], option: BallotOption) {
     if (option.name === 'Yes') {

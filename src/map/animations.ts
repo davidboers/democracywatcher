@@ -12,3 +12,12 @@ export function calculateViewBox(min_x: number, min_y: number, width: number, he
     ${height * svg_height}`;
 }
 
+export function zoomToFull() {
+    $('svg').removeAttr('viewBox');
+}
+
+export function zoomTo(viewBox: string) {
+    $('svg').each(function () {
+        $(this).attr('viewBox', viewBox);
+    });
+}

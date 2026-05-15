@@ -2,13 +2,13 @@
 import { withLocalResults } from './data/media-export.js';
 import { County, getPrecinctReturns, isStateWide, LocalReturn } from './data/structures.js';
 
-import { getRegionReturns, regionIDName, regions } from './regions.js';
+import { divisions, divisionsIn, getRegionReturns, regionIDName, regions, regionViewBoxes } from './regions.js';
 import { queryRace, redirectWithRaceName } from './utils.js';
 
 import { drawMap, fetchTopography } from './map/draw.js';
 import { buildRegionalStrengthBreakdown, changeSelection, showInspectionGradient, showReportingKey } from './map/side.js';
 import { recolorMap } from './map/color-map.js';
-import { calculateViewBox } from './map/animations.js';
+import { calculateViewBox, zoomTo, zoomToFull } from './map/animations.js';
 import { setUpProjection, STATE_HOUSE, STATE_SENATE } from './map/projections.js';
 
 function recolorWorker([localReturns, path_chain, border_chain]: [LocalReturn[], any, any]) {
@@ -18,23 +18,46 @@ function recolorWorker([localReturns, path_chain, border_chain]: [LocalReturn[],
 async function updateWithRegions(race_name: string) {
     const topology = await fetchTopography('src/topo/GA-REGION.json');
     return withLocalResults(localReturns => {
-        localReturns = getRegionReturns(regions, localReturns);
-        localReturns.sort((a, b) => Object.keys(regions).indexOf(a.countyName) - Object.keys(regions).indexOf(b.countyName));
-        return drawMap(topology, localReturns);
-    }, race_name)
-        .then(recolorWorker)
-        .then(localReturns => buildRegionalStrengthBreakdown(localReturns))
-        .then(localReturns => {
-            for (let localReturn of localReturns) {
-                const id = regionIDName(localReturn.countyName);
-                const row = $(`#${id}`);
+        const regionReturns = getRegionReturns(regions, localReturns);
+        const divisionReturns = getRegionReturns(divisions, localReturns);
+        regionReturns.sort((a, b) => Object.keys(regions).indexOf(a.countyName) - Object.keys(regions).indexOf(b.countyName));
+        divisionReturns.sort((a, b) => Object.keys(divisions).indexOf(a.countyName) - Object.keys(divisions).indexOf(b.countyName));
+        recolorWorker(drawMap(topology, divisionReturns));
+        const [_, region_path_chain, region_border_chain] = drawMap(topology, regionReturns, null, true);
+        recolorMap(regionReturns, region_path_chain, region_border_chain);
+
+        function buildClickableRegionalBreakdown() {
+            buildRegionalStrengthBreakdown(regionReturns);
+
+            for (const regionReturn of regionReturns) {
+                const id = regionIDName(regionReturn.countyName);
+                const row = $(`#region-select-${id}`);
+                const theseDivisionReturns = divisionReturns.filter(dr => divisionsIn[regionReturn.countyName].includes(dr.countyName));
                 row.css('cursor', 'pointer');
+                row.off().on('click', () => {
+                    region_border_chain.attr('stroke', 'black');
+                    updateWithDivisions(regionReturn.countyName, theseDivisionReturns);
+                    $('.num-header').first()
+                        .html('<button><i class="fa-solid fa-rotate-left"></i></button>')
+                        .off('click')
+                        .on('click', () => {
+                            buildClickableRegionalBreakdown();
+                            zoomToFull();
+                            region_border_chain.attr('stroke', 'white');
+                            $(`svg #${id}`).removeAttr('transform');
+                        });
+                });
             }
-        });
+        }
+
+        buildClickableRegionalBreakdown();
+    }, race_name);
 }
 
-async function updateWithDivisions(race_name: string) {
-
+async function updateWithDivisions(regionName: string, divisionReturns: LocalReturn[]) {
+    $(`svg #${regionIDName(regionName)}`).attr('transform', 'translate(1000)');
+    zoomTo(calculateViewBox(...regionViewBoxes[regionName]));
+    buildRegionalStrengthBreakdown(divisionReturns, true, true);
 }
 
 async function updateWithCounties(race_name: string) {
@@ -67,11 +90,11 @@ function setUpSidebar(race_name: string, countyReturns: LocalReturn[]) {
     $('#metro-zoom').on('click', function () {
         if ($(this).hasClass('selected')) {
             $(this).removeClass('selected');
-            $('svg').removeAttr('viewBox');
+            zoomToFull();
 
         } else {
             $(this).addClass('selected');
-            $('svg').attr('viewBox', calculateViewBox(0.270, 0.1513, 0.0578, 0.2306));
+            zoomTo(calculateViewBox(0.270, 0.1513, 0.0578, 0.2306));
 
         }
     });
@@ -131,12 +154,6 @@ function setUpSidebar(race_name: string, countyReturns: LocalReturn[]) {
         changeSelection('map-geo', 'set-precinct');
         $('#warn-projections').hide();
     });
-
-    /*$('#test-button').on('click', function () {
-        $('svg').each(function () {
-            $(this).attr('viewBox', calculateViewBox(100 / DEFAULT_WIDTH, 100 / DEFAULT_HEIGHT, DEFAULT_WIDTH_RATIO, DEFAULT_HEIGHT_RATIO));
-        });
-    });*/
 }
 
 function clipGroupTemplate(temp: (district: number) => string): (counties: County[], district: number) => string {

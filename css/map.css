@@ -39,11 +39,6 @@ svg {
     #map-holder {
         min-height: 320px;
     }
-
-    svg {
-        width: 100%;
-        height: auto;
-    }
 }
 
 svg * {
@@ -87,15 +82,15 @@ svg * {
     padding: 5px 10px;
 }
 
-.reg-strength-breakdown tr td:nth-child(1) {
+.reg-strength-breakdown tr .reg-brk-name {
     text-align: right;
 }
 
-.reg-strength-breakdown tr td:nth-child(2) {
+.reg-strength-breakdown tr .reg-brk-points {
     text-align: center;
 }
 
-.reg-strength-breakdown tr td:nth-child(3) {
+.reg-strength-breakdown tr .reg-brk-votebase {
     text-align: center;
 }
 
