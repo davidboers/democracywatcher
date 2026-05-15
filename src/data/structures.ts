@@ -75,7 +75,7 @@ export function isIncumbentTrailing(ballotItem: BallotItem): boolean {
 export type ReportingGroup = 'Election Day' | 'Absentee by Mail' | 'Provisional' | 'Advance Voting';
 
 export interface LocalReturn {
-    countyName: string;
+    jurisName: string;
     ballotItem: BallotItem;
     reportingStatus: ReportingStatus | ReportingStatuses;
 };
@@ -87,14 +87,14 @@ export function getPrecinctReturns(localReturns: LocalReturn[]): LocalReturn[] {
 function getPrecinctReturnsWorker(localReturn: LocalReturn): LocalReturn[] {
     return localReturn.ballotItem.ballotOptions.reduce((acc: LocalReturn[], ballotOption) => {
         for (let precinct of ballotOption.precinctResults || []) {
-            const precinctID = `${localReturn.countyName} - ${precinct.name}`;
-            let precinctReturn = acc.find(pr => pr.countyName === precinctID);
+            const precinctID = `${localReturn.jurisName} - ${precinct.name}`;
+            let precinctReturn = acc.find(pr => pr.jurisName === precinctID);
 
             if (!precinctReturn) {
                 const newBallotItem = structuredClone(localReturn.ballotItem);
                 newBallotItem.ballotOptions.forEach((bo: BallotOption) => bo.voteCount = 0);
                 precinctReturn = {
-                    countyName: precinctID,
+                    jurisName: precinctID,
                     ballotItem: newBallotItem,
                     reportingStatus: precinct.reportingStatus
                 };

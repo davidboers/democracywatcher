@@ -101,7 +101,7 @@ export function findLocalReturn(localReturns: LocalReturn[], d: TopoJsonObject) 
         name = `${name}`;
     }
 
-    return localReturns.find(lr => lr.countyName.replace(' County', '').toLowerCase() === name.toLowerCase());
+    return localReturns.find(lr => lr.jurisName.replace(' County', '').toLowerCase() === name.toLowerCase());
 }
 
 export async function fetchTopography(path: string) {

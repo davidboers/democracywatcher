@@ -82,19 +82,19 @@ export function regionIDName(name: string) {
 
 export function getRegionReturns(regionList: RegionList, localReturns: LocalReturn[]): LocalReturn[] {
     return localReturns.reduce((acc: LocalReturn[], lr) => {
-        const region = findRegion(regionList, lr.countyName);
+        const region = findRegion(regionList, lr.jurisName);
         if (!region) {
-            console.warn(`No region for [${lr.countyName}]`);
+            console.warn(`No region for [${lr.jurisName}]`);
             return acc;
         }
 
-        let regionReturn = acc.find(rr => rr.countyName === region);
+        let regionReturn = acc.find(rr => rr.jurisName === region);
 
         if (!regionReturn) {
             const newBallotItem = structuredClone(lr.ballotItem);
             newBallotItem.ballotOptions.forEach((bo: BallotOption) => bo.voteCount = votesFor(bo));
             regionReturn = {
-                countyName: region,
+                jurisName: region,
                 ballotItem: newBallotItem,
                 reportingStatus: combineReportingStatuses(lr.reportingStatus)
             };

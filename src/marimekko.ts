@@ -81,7 +81,7 @@ function updateMarimekko(localReturns: LocalReturn[]) {
             const label_x = gx + (width / 2);
             const unit_label = createJQuerySVG(`<g transform="translate(${label_x}, 5)" style="display: none;"></g>`);
             const label_text = createJQuerySVG('<text transform="rotate(90)"></text>');
-            label_text.innerHTML = (statewide) ? local.countyName.replace(' County', '') : local.countyName.replace(/.* - /, '');
+            label_text.innerHTML = (statewide) ? local.jurisName.replace(' County', '') : local.jurisName.replace(/.* - /, '');
             unit_label.append(label_text);
             $footer.append(unit_label);
 
@@ -122,7 +122,7 @@ function updateMarimekko(localReturns: LocalReturn[]) {
 
 function groupByRegion(localReturns: LocalReturn[]): LocalGroup[] {
     return localReturns.reduce((acc: LocalGroup[], local) => {
-        const group_name = findRegion(regions, local.countyName);
+        const group_name = findRegion(regions, local.jurisName);
         const group = acc.find(region => region.name == group_name);
         if (!group) { acc.push({ name: group_name, returns: [local] }); return acc; }
         group.returns.push(local);
@@ -132,7 +132,7 @@ function groupByRegion(localReturns: LocalReturn[]): LocalGroup[] {
 }
 
 function groupByCounty(localReturns: LocalReturn[]): LocalGroup[] {
-    return localReturns.map(lr => { return { name: lr.countyName, returns: getPrecinctReturns([lr]) }; });
+    return localReturns.map(lr => { return { name: lr.jurisName, returns: getPrecinctReturns([lr]) }; });
 }
 
 // Entrypoint 

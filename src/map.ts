@@ -20,8 +20,8 @@ async function updateWithRegions(race_name: string) {
     return withLocalResults(localReturns => {
         const regionReturns = getRegionReturns(regions, localReturns);
         const divisionReturns = getRegionReturns(divisions, localReturns);
-        regionReturns.sort((a, b) => Object.keys(regions).indexOf(a.countyName) - Object.keys(regions).indexOf(b.countyName));
-        divisionReturns.sort((a, b) => Object.keys(divisions).indexOf(a.countyName) - Object.keys(divisions).indexOf(b.countyName));
+        regionReturns.sort((a, b) => Object.keys(regions).indexOf(a.jurisName) - Object.keys(regions).indexOf(b.jurisName));
+        divisionReturns.sort((a, b) => Object.keys(divisions).indexOf(a.jurisName) - Object.keys(divisions).indexOf(b.jurisName));
         recolorWorker(drawMap(topology, divisionReturns));
         const [_, region_path_chain, region_border_chain] = drawMap(topology, regionReturns, null, true);
         recolorMap(regionReturns, region_path_chain, region_border_chain);
@@ -30,13 +30,13 @@ async function updateWithRegions(race_name: string) {
             buildRegionalStrengthBreakdown(regionReturns);
 
             for (const regionReturn of regionReturns) {
-                const id = regionIDName(regionReturn.countyName);
+                const id = regionIDName(regionReturn.jurisName);
                 const row = $(`#region-select-${id}`);
-                const theseDivisionReturns = divisionReturns.filter(dr => divisionsIn[regionReturn.countyName].includes(dr.countyName));
+                const theseDivisionReturns = divisionReturns.filter(dr => divisionsIn[regionReturn.jurisName].includes(dr.jurisName));
                 row.css('cursor', 'pointer');
                 row.off().on('click', () => {
                     region_border_chain.attr('stroke', 'black');
-                    updateWithDivisions(regionReturn.countyName, theseDivisionReturns);
+                    updateWithDivisions(regionReturn.jurisName, theseDivisionReturns);
                     $('.num-header').first()
                         .html('<button><i class="fa-solid fa-rotate-left"></i></button>')
                         .off('click')

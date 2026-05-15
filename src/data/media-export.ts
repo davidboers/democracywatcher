@@ -94,7 +94,7 @@ export function localReturnsForRace(race_name: string, counties: County[]): Loca
             race_id = ballotItem.id;
 
             return {
-                countyName: county.name,
+                jurisName: county.name,
                 ballotItem: ballotItem,
                 reportingStatus: countyReportingStatusFromPrecinctLevel(county) /// See Python script notes
             };

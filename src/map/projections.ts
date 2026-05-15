@@ -37,7 +37,7 @@ export type ClipGroup = {
 
 function clipRace(localReturnsA: LocalReturn[], localReturnsB: LocalReturn[]): BallotOption[] {
     return localReturnsA.reduce((acc: BallotOption[], lrA) => {
-        const lrB = localReturnsB.find(lr => lr.countyName === lrA.countyName);
+        const lrB = localReturnsB.find(lr => lr.jurisName === lrA.jurisName);
         if (!lrB) return acc;
         const precinctResultsB = lrB.ballotItem.ballotOptions.map(bo => bo.precinctResults).flat();
         const precinctsB = [...new Set(precinctResultsB.map(p => {
@@ -92,7 +92,7 @@ export function getClippedRaces(clipGroup: ClipGroup, counties: County[], race_a
         };
 
         clippedReturns.push({
-            countyName: `${d}`,
+            jurisName: `${d}`,
             ballotItem,
             reportingStatus: ballotItemReportingStatusFromPrecinctLevel(ballotItem)
         });
@@ -138,11 +138,11 @@ export function createTally(ref: ChamberReference, localReturns: LocalReturn[]):
     const partiesPrototype = Object.fromEntries(Object.keys(ref).map(party => [party, 0]));
 
     return localReturns.reduce((tally: LegislativeTally, localReturn) => {
-        let party = Object.keys(ref).find(pt => ref[pt].includes(localReturn.countyName));
+        let party = Object.keys(ref).find(pt => ref[pt].includes(localReturn.jurisName));
         let candidate = leading(localReturn.ballotItem.ballotOptions);
 
         if (!party) {
-            console.warn(`Did not find party data for ${localReturn.countyName};`);
+            console.warn(`Did not find party data for ${localReturn.jurisName};`);
             return tally;
         }
 

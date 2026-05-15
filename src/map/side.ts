@@ -65,9 +65,9 @@ export function buildRegionalStrengthBreakdown(localReturns: LocalReturn[], doNu
 
         /// Add list of counties
         $tbody.append(`
-            <tr id="region-select-${regionIDName(localReturn.countyName)}">
+            <tr id="region-select-${regionIDName(localReturn.jurisName)}">
                 ${(doNumber) ? `<td class="reg-brk-num">${num}</td>` : ''}
-                <td class="reg-brk-name">${localReturn.countyName}</td>
+                <td class="reg-brk-name">${localReturn.jurisName}</td>
                 <td class="reg-brk-points"><div style="width: 100%; padding: 5px; background-color:${color}; color: white;">${winning_points}</div></td>
                 <td class="reg-brk-votebase">${preciseShare(votebase_share)}</td>
                 ${(doListMembers) ? '<td><i class="fa-solid fa-circle-info"></i></td>' : ''}
