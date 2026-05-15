@@ -57,7 +57,7 @@ export function getMapSolidColor(all_options: BallotOption[]): string {
 export function pickReportingColor(reportingStatus: ReportingStatus) {
     switch (reportingStatus) {
         case 'Not Reported': return EMPTY_COLOR;
-        case 'Partially Reported': return '#aaa';
+        case 'Partially Reported': return '#767676';
         case 'Election Night Complete': return '#242424';
         case 'Fully Reported': return '#008000';
     }
