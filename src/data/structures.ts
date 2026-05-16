@@ -79,6 +79,7 @@ export interface LocalReturn {
     ballotItem: BallotItem;
     reportingStatus: ReportingStatus | ReportingStatuses;
     members?: string[];
+    altName?: string; // For precincts
 };
 
 export function getPrecinctReturns(localReturns: LocalReturn[]): LocalReturn[] {
@@ -89,7 +90,8 @@ function getPrecinctReturnsWorker(localReturn: LocalReturn): LocalReturn[] {
     return localReturn.ballotItem.ballotOptions.reduce((acc: LocalReturn[], ballotOption) => {
         for (let precinct of ballotOption.precinctResults || []) {
             const precinctID = `${localReturn.jurisName} - ${precinct.name}`;
-            let precinctReturn = acc.find(pr => pr.jurisName === precinctID);
+            let precinctReturn = acc.find(pr => pr.jurisName.toLowerCase() === precinctID.toLowerCase() ||
+                (pr.altName && pr.altName === `${localReturn.jurisName} - ${precinct.id}`));
 
             if (!precinctReturn) {
                 const newBallotItem = structuredClone(localReturn.ballotItem);
@@ -97,7 +99,8 @@ function getPrecinctReturnsWorker(localReturn: LocalReturn): LocalReturn[] {
                 precinctReturn = {
                     jurisName: precinctID,
                     ballotItem: newBallotItem,
-                    reportingStatus: precinct.reportingStatus
+                    reportingStatus: precinct.reportingStatus,
+                    altName: `${localReturn.jurisName} - ${precinct.id}`
                 };
                 acc.push(precinctReturn);
             }

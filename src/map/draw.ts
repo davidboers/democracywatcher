@@ -81,7 +81,7 @@ export function drawMap(topology: TopoJSON.Topology, localReturns: LocalReturn[]
         const target_name = (typeof pathName(d) === 'number'
             || pathName(d).replace(/[0-9]+/, '').length === 0)
             ? `District ${pathName(d)}`
-            : pathName(d)
+            : pathName(d).toUpperCase()
         $candidate_list_mini.append(`<h2>${target_name}</h2>`);
         const total_votes = totalVotes(ballotItem.ballotOptions);
         $('#not-hover').hide();
@@ -123,13 +123,23 @@ export function drawMap(topology: TopoJSON.Topology, localReturns: LocalReturn[]
     return [localReturns, path_chain, border_chain]
 }
 
+interface PrecinctProperties {
+    COUNTY: string;
+    PRECINCT_I: string;
+};
+
+export function returnIDSEqual(a: string, b: string): boolean {
+    return a.replace(' County', '').toLowerCase() === b.replace(' County', '').toLowerCase();
+}
+
 export function findLocalReturn(localReturns: LocalReturn[], d: Feature | TopoJSON.GeometryObject) {
     let name = pathName(d);
     if (typeof name === 'number') {
         name = `${name}`;
     }
 
-    return localReturns.find(lr => lr.jurisName.replace(' County', '').toLowerCase() === name.toLowerCase());
+    return localReturns.find(lr => returnIDSEqual(lr.jurisName, name) ||
+        (lr.altName && returnIDSEqual(lr.altName, `${(d.properties as PrecinctProperties).COUNTY} - ${(d.properties as PrecinctProperties).PRECINCT_I}`)));
 }
 
 export async function fetchTopography(path: string) {
