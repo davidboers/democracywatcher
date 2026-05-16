@@ -1,3 +1,4 @@
+// `npx webpack` to compile
 
 import { withLocalResults } from './data/media-export.js';
 import { County, getPrecinctReturns, isStateWide, LocalReturn, totalVotes } from './data/structures.js';
@@ -74,7 +75,8 @@ async function updateWithCounties(race_name: string) {
 async function updateWithPrecincts(race_name: string) {
     const topology = await fetchTopography('src/topo/GA-PRECINCTS.json');
     topology.objects.paths = { geometries: topology.objects.objects.geometries, type: 'GeometryCollection' };
-    topology.objects.paths.geometries.map((path: any) => path.properties.name = `${path.properties.COUNTY} - ${path.properties.PRECINCT_N}`);
+    topology.objects.paths.geometries.map((path: any) =>
+        path.properties.name = `${path.properties.COUNTY} - ${path.properties.PRECINCT_N}`);
     const county_topology = await fetchTopography('src/topo/GA-COUNTIES.json');
     return withLocalResults(localReturns => drawMap(topology, getPrecinctReturns(localReturns), county_topology), race_name)
         .then(recolorWorker);
