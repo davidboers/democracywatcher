@@ -78,6 +78,7 @@ export interface LocalReturn {
     jurisName: string;
     ballotItem: BallotItem;
     reportingStatus: ReportingStatus | ReportingStatuses;
+    members?: string[];
 };
 
 export function getPrecinctReturns(localReturns: LocalReturn[]): LocalReturn[] {

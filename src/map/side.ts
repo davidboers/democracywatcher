@@ -70,7 +70,7 @@ export function buildRegionalStrengthBreakdown(localReturns: LocalReturn[], doNu
                 <td class="reg-brk-name">${localReturn.jurisName}</td>
                 <td class="reg-brk-points"><div style="width: 100%; padding: 5px; background-color:${color}; color: white;">${winning_points}</div></td>
                 <td class="reg-brk-votebase">${preciseShare(votebase_share)}</td>
-                ${(doListMembers) ? '<td><i class="fa-solid fa-circle-info"></i></td>' : ''}
+                ${(doListMembers) ? `<td title="${getMemberList(localReturn)}" class="reg-brk-members"><i class="fa-solid fa-circle-info"></i></td>` : ''}
             </tr>
         `.trim());
     }
@@ -88,3 +88,13 @@ function pointDifference(leader: BallotOption, runnerUp: BallotOption, total_vot
     return shareA - shareB;
 }
 
+function getMemberList(localReturn: LocalReturn) {
+    const names = (localReturn.members as string[]).toSorted().map(nm => nm.replace(' County', ''));
+    if (names.length === 1) return names[0];
+    const [body, last] = bodyAndLast(names);
+    return [body.join(', '), last].join(' and ');
+}
+
+function bodyAndLast<T>(l: T[]): [T[], T] {
+    return [l.slice(0, l.length - 1), l[l.length - 1]];
+}

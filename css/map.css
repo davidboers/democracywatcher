@@ -45,6 +45,15 @@ svg * {
     vector-effect: non-scaling-stroke;
 }
 
+svg text {
+    text-anchor: middle;
+    dominant-baseline: middle;
+    font-size: 10px;
+    -webkit-user-select: none;
+    -ms-user-select: none;   
+    user-select: none;
+}
+
 #core-container {
     flex: 45%;
     display: flex;
@@ -82,6 +91,17 @@ svg * {
     padding: 5px 10px;
 }
 
+th.num-header {
+    padding: 0;
+}
+
+.num-header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
 .reg-strength-breakdown tr .reg-brk-name {
     text-align: right;
 }
@@ -92,6 +112,10 @@ svg * {
 
 .reg-strength-breakdown tr .reg-brk-votebase {
     text-align: center;
+}
+
+.reg-strength-breakdown tr .reg-brk-members {
+    color: cornflowerblue;
 }
 
 #candidate-list-mini {

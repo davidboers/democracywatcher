@@ -5,7 +5,7 @@ import { County, getPrecinctReturns, isStateWide, LocalReturn, totalVotes } from
 import { divisions, divisionsIn, getRegionReturns, regionIDName, regions, regionViewBoxes } from './regions.js';
 import { queryRace, redirectWithRaceName } from './utils.js';
 
-import { drawMap, fetchTopography } from './map/draw.js';
+import { BorderChain, drawMap, fetchTopography, PathChain } from './map/draw.js';
 import { buildRegionalStrengthBreakdown, changeSelection, showInspectionGradient, showReportingKey } from './map/side.js';
 import { recolorMap } from './map/color-map.js';
 import { calculateViewBox, zoomTo, zoomToFull } from './map/animations.js';
@@ -22,43 +22,47 @@ async function updateWithRegions(race_name: string) {
         const divisionReturns = getRegionReturns(divisions, localReturns);
         regionReturns.sort((a, b) => Object.keys(regions).indexOf(a.jurisName) - Object.keys(regions).indexOf(b.jurisName));
         divisionReturns.sort((a, b) => Object.keys(divisions).indexOf(a.jurisName) - Object.keys(divisions).indexOf(b.jurisName));
-        recolorWorker(drawMap(topology, divisionReturns));
-        const [_, region_path_chain, region_border_chain] = drawMap(topology, regionReturns, null, true);
+        const [, division_path_chain, division_border_chain] = drawMap(topology, divisionReturns, null, false, true);
+        recolorMap(divisionReturns, division_path_chain, division_border_chain);
+        const [, region_path_chain, region_border_chain] = drawMap(topology, regionReturns, null, true);
         recolorMap(regionReturns, region_path_chain, region_border_chain);
-        const total_votes = totalVotes(divisionReturns.map(dr => dr.ballotItem.ballotOptions).flat());
-
-        function buildClickableRegionalBreakdown() {
-            buildRegionalStrengthBreakdown(regionReturns);
-
-            for (const regionReturn of regionReturns) {
-                const id = regionIDName(regionReturn.jurisName);
-                const row = $(`#region-select-${id}`);
-                const theseDivisionReturns = divisionReturns.filter(dr => divisionsIn[regionReturn.jurisName].includes(dr.jurisName));
-                row.css('cursor', 'pointer');
-                row.off().on('click', () => {
-                    region_border_chain.attr('stroke', 'black').attr('stroke-width', '2px');
-                    updateWithDivisions(regionReturn.jurisName, theseDivisionReturns, total_votes);
-                    $('.num-header').first()
-                        .html('<button><i class="fa-solid fa-rotate-left"></i></button>')
-                        .off('click')
-                        .on('click', () => {
-                            buildClickableRegionalBreakdown();
-                            zoomToFull();
-                            region_border_chain.attr('stroke', 'white').attr('stroke-width', '1px');
-                            $(`svg #${id}`).removeAttr('transform');
-                        });
-                });
-            }
-        }
-
-        buildClickableRegionalBreakdown();
+        buildClickableRegionalBreakdown(regionReturns, divisionReturns, region_border_chain, division_path_chain);
     }, race_name);
 }
 
-async function updateWithDivisions(regionName: string, divisionReturns: LocalReturn[], total_votes: number) {
-    $(`svg #${regionIDName(regionName)}`).attr('transform', 'translate(1000)');
-    zoomTo(calculateViewBox(...regionViewBoxes[regionName]));
-    buildRegionalStrengthBreakdown(divisionReturns, true, true, total_votes);
+function buildClickableRegionalBreakdown(regionReturns: LocalReturn[], divisionReturns: LocalReturn[], region_border_chain: BorderChain, division_path_chain: PathChain) {
+    const total_votes = totalVotes(divisionReturns.map(dr => dr.ballotItem.ballotOptions).flat());
+
+    buildRegionalStrengthBreakdown(regionReturns);
+
+    for (const regionReturn of regionReturns) {
+        const regionName = regionReturn.jurisName;
+        const id = regionIDName(regionName);
+        const row = $(`#region-select-${id}`);
+        const theseDivisionReturns = divisionReturns.filter(dr => divisionsIn[regionName].includes(dr.jurisName));
+
+        row.css('cursor', 'pointer');
+        row.off().on('click', () => {
+            region_border_chain.attr('stroke', 'black').attr('stroke-width', '2px');
+            $(`svg #${regionIDName(regionName)}`).attr('transform', 'translate(1000)');
+            zoomTo(calculateViewBox(...regionViewBoxes[regionName]));
+            buildRegionalStrengthBreakdown(theseDivisionReturns, true, true, total_votes);
+            theseDivisionReturns.forEach((dr, i) => {
+                const $label = $(`text#path-label-${regionIDName(dr.jurisName)}`);
+                if ($label.first()) $label[0].innerHTML = `${i + 1}`; else console.log('nope');
+            });
+
+            $('.num-header').first()
+                .html('<button><i class="fa-solid fa-rotate-left"></i></button>')
+                .off('click')
+                .on('click', () => {
+                    buildClickableRegionalBreakdown(regionReturns, divisionReturns, region_border_chain, division_path_chain);
+                    zoomToFull();
+                    region_border_chain.attr('stroke', 'white').attr('stroke-width', '1px');
+                    $(`svg #${id}`).removeAttr('transform');
+                });
+        });
+    }
 }
 
 async function updateWithCounties(race_name: string) {
@@ -105,13 +109,13 @@ function setUpSidebar(race_name: string, countyReturns: LocalReturn[]) {
     });
 
     if (isStateWide(countyReturns)) {
-        $('#set-region').on('click', function () {
+        $('#set-region').off().on('click', function () {
             updateWithRegions(race_name);
             changeSelection('map-geo', 'set-region');
             $('#warn-projections').hide();
         });
 
-        $('#set-cd').on('click', function () {
+        $('#set-cd').off().on('click', function () {
             setUpProjection(race_name, 'src/topo/GA-CD.json', 'set-cd',
                 {
                     temp: clipGroupTemplate(d => `US House of Representatives - District ${d}`),
@@ -119,7 +123,7 @@ function setUpSidebar(race_name: string, countyReturns: LocalReturn[]) {
                 });
         });
 
-        $('#set-sd').on('click', function () {
+        $('#set-sd').off().on('click', function () {
             setUpProjection(race_name, 'src/topo/GA-SD.json', 'set-sd',
                 {
                     temp: clipGroupTemplate(d => `State Senate - District ${d}`),
@@ -128,7 +132,7 @@ function setUpSidebar(race_name: string, countyReturns: LocalReturn[]) {
                 });
         });
 
-        $('#set-hd').on('click', function () {
+        $('#set-hd').off().on('click', function () {
             setUpProjection(race_name, 'src/topo/GA-HD.json', 'set-hd',
                 {
                     temp: clipGroupTemplate(d => `State House of Representatives - District ${d}`),
@@ -144,13 +148,13 @@ function setUpSidebar(race_name: string, countyReturns: LocalReturn[]) {
         });
     }
 
-    $('#set-county').on('click', function () {
+    $('#set-county').off().on('click', function () {
         updateWithCounties(race_name).then(checkIfShowInspectionGradient);
         changeSelection('map-geo', 'set-county');
         $('#warn-projections').hide();
     });
 
-    $('#set-precinct').on('click', function () {
+    $('#set-precinct').off().on('click', function () {
         updateWithPrecincts(race_name).then(checkIfShowInspectionGradient);
         changeSelection('map-geo', 'set-precinct');
         $('#warn-projections').hide();
@@ -175,6 +179,8 @@ void function () {
         failMessage();
         return;
     }
+
+    $('svg').attr('viewBox', Object.values(calculateViewBox(0, 0, 1, 1)).join(' '));
 
     updateWithCounties(race_name)
         .then(countyReturns => setUpSidebar(race_name, countyReturns))

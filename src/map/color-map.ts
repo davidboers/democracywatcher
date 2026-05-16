@@ -21,7 +21,7 @@ function getReportingColor(localReturn: LocalReturn): string {
 }
 
 function colorMap(worker: ColorWorker, localReturns: LocalReturn[], path_chain: any, border_chain: any) {
-    path_chain.attr('fill', (d: TopoJsonObject) => {
+    path_chain.attr('fill', (d: any) => {
         const localReturn = findLocalReturn(localReturns, d);
         if (!localReturn) {
             return '#00000000'; // No election in this jurisdiction

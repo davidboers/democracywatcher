@@ -2,18 +2,36 @@ import { candidateCompare, LocalReturn, totalVotes } from '../data/structures.js
 import { makeListEntry } from '../race.js';
 import { regionIDName } from '../regions.js';
 
-import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
-import * as topojson from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
+import * as d3 from 'd3';
+import * as topojson from 'topojson-client';
 
-export function drawMap(topology: any, localReturns: LocalReturn[], border_topology?: any, noClear?: boolean): [LocalReturn[], any, any] {
-    const width = $('svg').width();
-    const height = $('svg').height();
+type Feature = GeoJSON.Feature<GeoJSON.Geometry, GeoJSON.GeoJsonProperties>;
+type FeatureCollection = GeoJSON.FeatureCollection<GeoJSON.Geometry, GeoJSON.GeoJsonProperties>;
+export type PathChain = d3.Selection<d3.BaseType | SVGPathElement, GeoJSON.Feature<GeoJSON.Geometry, GeoJSON.GeoJsonProperties>, d3.BaseType, unknown>;
+export type BorderChain = d3.Selection<d3.BaseType | SVGPathElement, GeoJSON.MultiLineString, d3.BaseType, unknown>
+
+function pathName(d: Feature | TopoJSON.GeometryObject): string {
+    const properties: any = d.properties;
+    if (!properties) {
+        console.warn('A TopoJSON feature does not have properties!');
+        return 'Unnamed feature';
+    }
+    return `${properties['name']}`;
+}
+
+export function drawMap(topology: TopoJSON.Topology, localReturns: LocalReturn[], border_topology?: any, noClear?: boolean, doLabel?: boolean): [LocalReturn[], PathChain, BorderChain] {
+    const width = $('svg').width() as number;
+    const height = $('svg').height() as number;
 
     topology = structuredClone(topology);
-    topology.objects.paths.geometries = topology.objects.paths.geometries.filter((d: any) => findLocalReturn(localReturns, d));
 
-    const paths = topojson.feature(topology, topology.objects.paths);
-    const borders = topojson.mesh((border_topology || topology), (border_topology || topology).objects.paths, (a, b) => a !== b);
+    const paths = topojson.feature(topology, topology.objects.paths) as FeatureCollection;
+    paths.features = paths.features.filter(d => findLocalReturn(localReturns, d));
+    paths.features.forEach(d => (d.properties ||= {}).return = findLocalReturn(localReturns, d));
+    const borders = topojson.mesh(
+        (border_topology || topology),
+        (border_topology || topology).objects.paths,
+        (a, b) => (a !== b) && !!findLocalReturn(localReturns, a) && !!findLocalReturn(localReturns, b));
 
     const svg = d3.select('svg');
     if (!noClear)
@@ -24,7 +42,7 @@ export function drawMap(topology: any, localReturns: LocalReturn[], border_topol
     const path_chain = svg.selectAll('path.paths')
         .data(paths.features)
         .join('path')
-        .attr('id', (d: TopoJsonObject) => regionIDName(d.properties.name))
+        .attr('id', d => regionIDName(pathName(d)))
         .attr('class', 'hoverable')
         .attr('d', path);
 
@@ -36,6 +54,16 @@ export function drawMap(topology: any, localReturns: LocalReturn[], border_topol
         .attr('fill', 'none')
         .attr('stroke', 'white');
 
+    if (doLabel) {
+        for (const d of paths.features) {
+            const [x, y] = path.centroid(d);
+            svg.append('text')
+                .attr('x', x)
+                .attr('y', y)
+                .attr('id', `path-label-${regionIDName(pathName(d))}`);
+        }
+    }
+
     // Hover
 
     let pause_hover = false;
@@ -46,16 +74,15 @@ export function drawMap(topology: any, localReturns: LocalReturn[], border_topol
         $('#not-hover').show();
     }
 
-    function switchHover(d: TopoJsonObject) {
-        const target_name = (typeof d.properties.name === 'number'
-            || d.properties.name.replace(/[0-9]+/, '').length === 0)
-            ? `District ${d.properties.name}`
-            : d.properties.name
-        $candidate_list_mini.append(`<h2>${target_name}</h2>`);
-
-        const localReturn = findLocalReturn(localReturns, d);
-        if (!localReturn) return;
+    function switchHover(d: Feature) {
+        const localReturn = d.properties?.return as LocalReturn;
         const ballotItem = localReturn.ballotItem;
+
+        const target_name = (typeof pathName(d) === 'number'
+            || pathName(d).replace(/[0-9]+/, '').length === 0)
+            ? `District ${pathName(d)}`
+            : pathName(d)
+        $candidate_list_mini.append(`<h2>${target_name}</h2>`);
         const total_votes = totalVotes(ballotItem.ballotOptions);
         $('#not-hover').hide();
         ballotItem.ballotOptions
@@ -68,7 +95,7 @@ export function drawMap(topology: any, localReturns: LocalReturn[], border_topol
         const target = d3.select(event.target);
 
         if (target.classed('hoverable') && !pause_hover) {
-            switchHover(target.data()[0]);
+            switchHover(target.data()[0] as Feature);
         }
 
     }).on('mouseout', () => {
@@ -79,10 +106,10 @@ export function drawMap(topology: any, localReturns: LocalReturn[], border_topol
     }).on('click', (event: any) => {
         const target = d3.select(event.target);
 
-        if (target.classed('hoverable')) {
+        if (target.classed('hoverable') && event.detail === 1) {
             pause_hover = true;
             $candidate_list_mini.empty();
-            switchHover(target.data()[0]);
+            switchHover(target.data()[0] as Feature);
 
         } else {
             pause_hover = false;
@@ -90,13 +117,14 @@ export function drawMap(topology: any, localReturns: LocalReturn[], border_topol
         }
     });
 
+
     $('#not-hover').empty();
 
     return [localReturns, path_chain, border_chain]
 }
 
-export function findLocalReturn(localReturns: LocalReturn[], d: TopoJsonObject) {
-    let name = d.properties.name;
+export function findLocalReturn(localReturns: LocalReturn[], d: Feature | TopoJSON.GeometryObject) {
+    let name = pathName(d);
     if (typeof name === 'number') {
         name = `${name}`;
     }

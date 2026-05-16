@@ -1,5 +1,8 @@
-import { combineReportingStatuses, combineReportingStatusList } from './data/reporting.js';
-import { BallotOption, LocalReturn, votesFor } from './data/structures.js';
+import { combineReportingStatuses } from './data/reporting.js';
+import { combineReportingStatusList } from './data/reporting.js';
+import { BallotOption } from './data/structures.js';
+import { LocalReturn } from './data/structures.js';
+import { votesFor } from './data/structures.js';
 
 interface RegionList {
     [key: string]: string[];
@@ -96,13 +99,15 @@ export function getRegionReturns(regionList: RegionList, localReturns: LocalRetu
             regionReturn = {
                 jurisName: region,
                 ballotItem: newBallotItem,
-                reportingStatus: combineReportingStatuses(lr.reportingStatus)
+                reportingStatus: combineReportingStatuses(lr.reportingStatus),
+                members: [lr.jurisName]
             };
             acc.push(regionReturn);
 
         } else {
             regionReturn.ballotItem.ballotOptions.forEach(bo => bo.voteCount += votesFor(lr.ballotItem.ballotOptions.find(bo2 => bo.name === bo2.name) as BallotOption));
             regionReturn.reportingStatus = combineReportingStatusList([regionReturn.reportingStatus, lr.reportingStatus]);
+            (regionReturn.members ||= []).push(lr.jurisName);
 
         }
 
