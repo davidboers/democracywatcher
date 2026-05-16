@@ -31,7 +31,7 @@ export function drawMap(topology: TopoJSON.Topology, localReturns: LocalReturn[]
     const borders = topojson.mesh(
         (border_topology || topology),
         (border_topology || topology).objects.paths,
-        (a, b) => (a !== b) && !!findLocalReturn(localReturns, a) && !!findLocalReturn(localReturns, b));
+        (a, b) => (a !== b) && (!!border_topology || (!!findLocalReturn(localReturns, a) && !!findLocalReturn(localReturns, b))));
 
     const svg = d3.select('svg');
     if (!noClear)
