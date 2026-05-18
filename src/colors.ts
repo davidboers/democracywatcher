@@ -1,6 +1,9 @@
 
 import { ReportingStatus } from './data/reporting.js';
 import { BallotOption, leading, totalVotes, votesFor } from './data/structures.js';
+import { makeLegend } from './utils.js';
+
+import seedrandom from 'seedrandom';
 
 const color_palette = [
     'purple',
@@ -13,32 +16,77 @@ const color_palette = [
     'saddlebrown'
 ];
 
+const DEM_COLOR = 'royalblue';
+const REP_COLOR = 'crimson';
+const LIB_COLOR = 'orange';
+const GRN_COLOR = 'limegreen';
+
+const party_label_colors = {
+    Dem: DEM_COLOR,
+    Rep: REP_COLOR,
+    Lib: LIB_COLOR,
+    Grn: GRN_COLOR
+} as const;
+
 export const EMPTY_COLOR = '#aaaaaa';
 
+var sortedPalettes: { [key: string]: string[] } = {};
+
 export function getColor(all_options: BallotOption[], option: BallotOption) {
-    if (option.name === 'Yes') {
+    // Referendum colors
+    if (['Yes', 'Yes / Sì'].includes(option.name)) { // Spanish should be stripped out, this is just a safeguard
         return 'green';
     }
 
     if (option.name === 'No') {
-        return 'red';
+        return 'crimson';
     }
 
-    all_options = all_options.toSorted((a, b) => a.ballotOrder - b.ballotOrder);
+    const sorted_color_palette = getSortedColorPalette(all_options);
 
+    all_options = all_options.toSorted((a, b) => a.ballotOrder - b.ballotOrder);
     let index = all_options.findIndex((bo) => bo.name == option.name);
 
     if (index === -1) {
-        console.warn(`Couldn\'t find candidate ${option.name} in a given option list.`);
-        return color_palette[0];
+        console.warn(`Couldn't find candidate ${option.name} in a given option list.`);
+        return sorted_color_palette[0];
     }
 
-    if (index >= color_palette.length) {
+    if (index >= sorted_color_palette.length) {
         console.warn(`I need at least ${index + 1} colors!`);
-        index = index % color_palette.length;
+        index = index % sorted_color_palette.length;
     }
 
-    return color_palette[index];
+    return sorted_color_palette[index];
+}
+
+function getSortedColorPalette(options: BallotOption[]): string[] {
+    const hash = options.map(bo => bo.name).toSorted().toString();
+    if (sortedPalettes[hash]) return sortedPalettes[hash];
+    const rng = seedrandom(hash);
+    const sorted_color_palette = color_palette.toSorted(() => (rng() * 2 - 1) - (rng() * 2 - 1));
+
+    let label: keyof typeof party_label_colors;
+    for (label in party_label_colors) {
+        const labelsWithThisParty = options.map((_, i) => i).filter((i) => options[i].name.includes(`(${label})`));
+
+        if (labelsWithThisParty.length === 1) {
+            const [index] = labelsWithThisParty;
+            const color = party_label_colors[label];
+
+            if (sorted_color_palette[index] === color) continue;
+
+            const existingColorIndex = sorted_color_palette.indexOf(color);
+            if (existingColorIndex !== -1) {
+                sorted_color_palette[existingColorIndex] = sorted_color_palette[index];
+            }
+
+            sorted_color_palette[index] = color;
+        }
+    }
+
+    sortedPalettes[hash] = sorted_color_palette;
+    return sorted_color_palette;
 }
 
 function getMapColorWorker(all_options: BallotOption[], worker: (all_options: BallotOption[], option: BallotOption) => string): string {
@@ -146,13 +194,14 @@ function nameToRGB(color: string): number[] {
 
 export function candidateLegend(ballotOptions: BallotOption[]) {
     const $legend = $('#candidates-legend');
+    const legendLabels = makeLegend(ballotOptions.map(bo => bo.name));
     for (const i in ballotOptions) {
         const ballotOption = ballotOptions[i];
         const color = getColor(ballotOptions, ballotOption);
         $legend.append(`
             <div class="candidate-item">
                 <div style="background-color: ${color};" class="candidate-color-box"></div>
-                <span>${ballotOption.name}</span>
+                <span>${legendLabels[ballotOption.name]}</span>
             </div>
             `.trim());
     }
