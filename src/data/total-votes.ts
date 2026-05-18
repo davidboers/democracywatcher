@@ -114,7 +114,7 @@ export function mergeToBallotItem([groups, entries]: [TotalVotesByGroupEntry[], 
 // Scrape functions
 
 async function worker(url: string): Promise<[TotalVotesByGroupEntry[], CountyResultsEntry[]]> {
-    return fetch(url)
+    return fetch(url, { cache: 'no-cache' })
         .then(async function (response) {
             const wb = XLSX.read(await response.arrayBuffer());
             const groups = (XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { header: 1 }) as TotalVotesByGroupEntryRow[])

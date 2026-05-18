@@ -10,7 +10,7 @@ export type Root = {
 };
 
 async function worker(url: string): Promise<Root> {
-    return fetch(url)
+    return fetch(url, { cache: 'no-cache' })
         .then(async response => (await response.blob()).stream().pipeThrough(new DecompressionStream('gzip')))
         .then(async decompressedStream => await new Response(decompressedStream).text())
         .then(async decompressedJSON => JSON.parse(decompressedJSON))
