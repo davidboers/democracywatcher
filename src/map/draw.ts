@@ -5,7 +5,7 @@ import { regionIDName } from '../regions.js';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
 
-type Feature = GeoJSON.Feature<GeoJSON.Geometry, GeoJSON.GeoJsonProperties>;
+export type Feature = GeoJSON.Feature<GeoJSON.Geometry, GeoJSON.GeoJsonProperties>;
 type FeatureCollection = GeoJSON.FeatureCollection<GeoJSON.Geometry, GeoJSON.GeoJsonProperties>;
 export type PathChain = d3.Selection<d3.BaseType | SVGPathElement, GeoJSON.Feature<GeoJSON.Geometry, GeoJSON.GeoJsonProperties>, d3.BaseType, unknown>;
 export type BorderChain = d3.Selection<d3.BaseType | SVGPathElement, GeoJSON.MultiLineString, d3.BaseType, unknown>
@@ -26,6 +26,7 @@ export function drawMap(topology: TopoJSON.Topology, localReturns: LocalReturn[]
     topology = structuredClone(topology);
 
     const paths = topojson.feature(topology, topology.objects.paths) as FeatureCollection;
+    const projection = d3.geoMercator().fitSize([width, height], paths);
     paths.features = paths.features.filter(d => findLocalReturn(localReturns, d));
     paths.features.forEach(d => (d.properties ||= {}).return = findLocalReturn(localReturns, d));
     const borders = topojson.mesh(
@@ -36,7 +37,6 @@ export function drawMap(topology: TopoJSON.Topology, localReturns: LocalReturn[]
     const svg = d3.select('svg');
     if (!noClear)
         svg.selectAll('*').remove();
-    const projection = d3.geoMercator().fitSize([width, height], paths);
     const path = d3.geoPath(projection);
 
     const path_chain = svg.selectAll('path.paths')
@@ -60,6 +60,7 @@ export function drawMap(topology: TopoJSON.Topology, localReturns: LocalReturn[]
             svg.append('text')
                 .attr('x', x)
                 .attr('y', y)
+                .attr('class', 'awaiting-layer')
                 .attr('id', `path-label-${regionIDName(pathName(d))}`);
         }
     }
@@ -69,12 +70,12 @@ export function drawMap(topology: TopoJSON.Topology, localReturns: LocalReturn[]
     let pause_hover = false;
     const $candidate_list_mini = $('#candidate-list-mini');
 
-    function restoreBeforeHover() {
+    const restoreBeforeHover = () => {
         $candidate_list_mini.empty();
         $('#not-hover').show();
     }
 
-    function switchHover(d: Feature) {
+    const switchHover = (d: Feature) => {
         const localReturn = d.properties?.return as LocalReturn;
         const ballotItem = localReturn.ballotItem;
 
@@ -116,7 +117,6 @@ export function drawMap(topology: TopoJSON.Topology, localReturns: LocalReturn[]
             restoreBeforeHover();
         }
     });
-
 
     $('#not-hover').empty();
 

@@ -11,14 +11,11 @@
     <link rel="stylesheet" href="css/race.css">
     <link rel="stylesheet" href="css/map.css">
     <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
-    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
-    <script src="dist/race.js" type="module"></script>
-    <script src="dist/map.js" type="module"></script>
+    <script src="dist/map.bundle.js" type="module"></script>
 
 </head>
 
 <body>
-
     <div id="container">
         <div id="map-holder">
             <svg>
@@ -27,6 +24,7 @@
         </div>
 
         <div id="core-container" class="rounded-container">
+            <h2 id="race-name-map"></h2>
             <div id="map-upper-dashboard">
                 <div id="map-toggle" class="button-set">
                     <button id="set-solid" class="selected">Solid</button>
@@ -34,7 +32,7 @@
                     <button id="set-reporting">Reporting</button>
                 </div>
 
-                <div style="border-left: 2px solid darkgray; height: 100%;"></div>
+                <div style="border-left: 2px solid darkgray; height: 50%;"></div>
 
                 <div class="button-set">
                     <button id="metro-zoom">Zoom to Metro ATL</button>
@@ -62,10 +60,15 @@
 
     <template id="reg-strength-breakdown-temp">
         <table class="reg-strength-breakdown">
+            <tr class="reg-strength-header">
+                <th colspan="6">Regional breakdown<br>
+                    <p class="reg-strength-click-notice" hidden>Click on a row to zoom in further</p>
+                </th>
+            </tr>
             <tr>
                 <th class="num-header"></th>
                 <th></th>
-                <th>Leader</th>
+                <th colspan="2">Leader</th>
                 <th title="Proportion of total votes for all candidates in this race, as counted so far.">% votebase</th>
                 <th class="members-header"></th>
             </tr>

@@ -11,7 +11,7 @@ export async function setUpProjection(race_name: string, topojsonPath: string, b
     getLocalResults()
         .then(counties => getClippedRaces(clipGroup, counties, race_name))
         .then(localReturns => drawMap(topology, localReturns))
-        .then(([localReturns, path_chain, border_chain]) => recolorMap(localReturns, path_chain, border_chain))
+        .then(([localReturns, path_chain, _]) => recolorMap(localReturns, path_chain))
         .then(localReturns => {
             changeSelection('map-geo', buttonID);
             $('#warn-projections').show();

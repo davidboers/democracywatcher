@@ -4,7 +4,7 @@ import { getMapShadedColor, getMapSolidColor, pickReportingColor } from '../colo
 import { combineReportingStatuses } from '../data/reporting.js';
 import { LocalReturn } from '../data/structures.js';
 
-import { findLocalReturn } from './draw.js';
+import { Feature, findLocalReturn } from './draw.js';
 
 type ColorWorker = (localReturn: LocalReturn) => string;
 
@@ -20,8 +20,8 @@ function getReportingColor(localReturn: LocalReturn): string {
     return pickReportingColor(combineReportingStatuses(localReturn.reportingStatus));
 }
 
-function colorMap(worker: ColorWorker, localReturns: LocalReturn[], path_chain: any, border_chain: any) {
-    path_chain.attr('fill', (d: any) => {
+function colorMap(worker: ColorWorker, localReturns: LocalReturn[], path_chain: any) {
+    path_chain.attr('fill', (d: Feature) => {
         const localReturn = findLocalReturn(localReturns, d);
         if (!localReturn) {
             return '#00000000'; // No election in this jurisdiction
@@ -30,7 +30,7 @@ function colorMap(worker: ColorWorker, localReturns: LocalReturn[], path_chain: 
     });
 }
 
-export function recolorMap(localReturns: LocalReturn[], path_chain: any, border_chain: any) {
+export function recolorMap(localReturns: LocalReturn[], path_chain: any) {
     const default_toggle = $('#map-toggle .selected').attr('id');
     let defaultColorWorker: ColorWorker;
 
@@ -43,7 +43,7 @@ export function recolorMap(localReturns: LocalReturn[], path_chain: any, border_
         }
     }();
 
-    colorMap(defaultColorWorker, localReturns, path_chain, border_chain);
+    colorMap(defaultColorWorker, localReturns, path_chain);
 
     function updateToggle(id: string, worker: any) {
         $(`#${id}`).off('click').on('click', function () {
@@ -58,7 +58,7 @@ export function recolorMap(localReturns: LocalReturn[], path_chain: any, border_
                 }
             }
 
-            colorMap(worker, localReturns, path_chain, border_chain);
+            colorMap(worker, localReturns, path_chain);
             changeSelection('map-toggle', id);
         });
     }

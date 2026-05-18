@@ -6,9 +6,10 @@
       "jquery"
     ],
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   },
-  "esModuleInterop": true,
   "allowSyntheticDefaultImports": true,
   "skipLibCheck": true
 }
