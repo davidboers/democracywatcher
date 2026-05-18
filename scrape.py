@@ -70,6 +70,9 @@ def job():
                     ballotItem['name'] = re.sub(spanish_regex, '', ballotItem['name'])
 
                 for ballotOption in ballotItem['ballotOptions']:
+                    if ballotOption['name'] == 'Deandre Mathis':
+                        ballotOption['name'] = 'DeAndre Mathis'
+
                     del ballotOption['politicalParty']
                     del ballotOption['groupResults']
 
