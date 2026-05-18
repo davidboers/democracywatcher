@@ -333,8 +333,10 @@ function filterRaces(groupClassName: string, className?: string) {
 
 async function importAndUpdate(preselectedRaceName: string | null) {
     const promise = MediaExport.withRoot(MediaExport.DEFAULT_SOURCE, root => updateRaceSelector(root).then(ballotItems =>
-        [(preselectedRaceName) ? MediaExport.localReturnsForRace(preselectedRaceName, root.localResults) : undefined,
-            ballotItems] as [LocalReturn[] | undefined, BallotItem[]]
+        [(preselectedRaceName)
+            ? MediaExport.localReturnsForRace(root.localResults, preselectedRaceName, queryCounty() || undefined)
+            : undefined
+            , ballotItems] as [LocalReturn[] | undefined, BallotItem[]]
     ));
 
     // Loading screen

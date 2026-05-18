@@ -77,7 +77,7 @@ export async function getLocalResults(url: string = DEFAULT_SOURCE): Promise<Cou
 export async function withLocalResults<T>(pred: (_: LocalReturn[]) => T, race_name: string, county?: string, url: string = DEFAULT_SOURCE): Promise<T> {
     return getLocalResults(url)
         .then(counties => {
-            let localReturns = localReturnsForRace(race_name, counties);
+            let localReturns = localReturnsForRace(counties, race_name);
 
             if (county) {
                 localReturns = localReturns.filter(lr => formatCountyNameAsValue(lr.jurisName) === county);
@@ -87,10 +87,11 @@ export async function withLocalResults<T>(pred: (_: LocalReturn[]) => T, race_na
         });
 }
 
-export function localReturnsForRace(race_name: string, counties: County[]): LocalReturn[] {
+export function localReturnsForRace(counties: County[], race_name: string, countyName?: string): LocalReturn[] {
     let race_id: string | undefined;
 
     return counties
+        .filter(county => countyName === undefined || formatCountyNameAsValue(county.name) === countyName)
         .map(county => {
             const ballotItem = findBallotItem(county.ballotItems, race_name, race_id);
             if (!ballotItem) return null;

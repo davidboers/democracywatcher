@@ -81,12 +81,12 @@ function clipRace(localReturnsA: LocalReturn[], localReturnsB: LocalReturn[]): B
 }
 
 export function getClippedRaces(clipGroup: ClipGroup, counties: County[], race_a: string): LocalReturn[] {
-    const localReturnsA = localReturnsForRace(race_a, counties);
+    const localReturnsA = localReturnsForRace(counties, race_a);
     const clippedReturns: LocalReturn[] = [];
 
     for (let d = 1; d <= clipGroup.maxDistricts; d++) {
         const race_b = clipGroup.temp(counties, d);
-        const localReturnsB = localReturnsForRace(race_b, counties);
+        const localReturnsB = localReturnsForRace(counties, race_b);
 
         const ballotOptions = clipRace(localReturnsA, localReturnsB);
         const ballotItem = {
