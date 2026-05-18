@@ -19,14 +19,24 @@ function pathName(d: Feature | TopoJSON.GeometryObject): string {
     return `${properties['name']}`;
 }
 
-export function drawMap(topology: TopoJSON.Topology, localReturns: LocalReturn[], border_topology?: any, noClear?: boolean, doLabel?: boolean): [LocalReturn[], PathChain, BorderChain] {
+export function drawMap(
+    topology: TopoJSON.Topology,
+    localReturns: LocalReturn[],
+    border_topology?: any,
+    noClear?: boolean,
+    doLabel?: boolean,
+    zoomProjection?: boolean):
+    [LocalReturn[], PathChain, BorderChain] {
+
     const width = $('svg').width() as number;
     const height = $('svg').height() as number;
 
     topology = structuredClone(topology);
 
     const paths = topojson.feature(topology, topology.objects.paths) as FeatureCollection;
-    const projection = d3.geoMercator().fitSize([width, height], paths);
+    let projection;
+    if (!zoomProjection)
+        projection = d3.geoMercator().fitSize([width, height], paths);
     paths.features = paths.features.filter(d => findLocalReturn(localReturns, d));
     paths.features.forEach(d => (d.properties ||= {}).return = findLocalReturn(localReturns, d));
     const borders = topojson.mesh(
@@ -37,6 +47,8 @@ export function drawMap(topology: TopoJSON.Topology, localReturns: LocalReturn[]
     const svg = d3.select('svg');
     if (!noClear)
         svg.selectAll('*').remove();
+    if (zoomProjection)
+        projection = d3.geoMercator().fitSize([width, height], paths);
     const path = d3.geoPath(projection);
 
     const path_chain = svg.selectAll('path.paths')

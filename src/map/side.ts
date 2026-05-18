@@ -44,15 +44,15 @@ export function buildRegionalStrengthBreakdown(
     grand_total?: number) {
 
     const $template = $('#reg-strength-breakdown-temp');
-    const $not_hover = getNotHover();
-    $not_hover.append($template.html());
-    const $tbody = $not_hover.find('.reg-strength-list').first();
+    const $table = $('<div/>');
+    $table.append($template.html());
+    const $tbody = $table.find('.reg-strength-list').first();
 
     if (!doNumber)
-        $not_hover.find('.num-header').remove();
+        $table.find('.num-header').remove();
 
     if (!doListMembers)
-        $not_hover.find('.members-header').remove();
+        $table.find('.members-header').remove();
 
     const legendLabels = makeLegend(localReturns[0].ballotItem.ballotOptions.map(bo => bo.name));
 
@@ -86,7 +86,7 @@ export function buildRegionalStrengthBreakdown(
         `.trim());
     }
 
-    return localReturns;
+    return $table;
 }
 
 function pointDifferenceF(leader: BallotOption, runnerUp: BallotOption, total_votes: number): string {
@@ -119,13 +119,15 @@ export function buildClickableRegionalBreakdown(
     total_votes: number,
     doNumber?: boolean) {
 
-    buildRegionalStrengthBreakdown(theseReturns, doNumber);
-    $('#not-hover .reg-strength-click-notice').show();
+    const $not_hover = $('#not-hover');
+    const $thisTable = buildRegionalStrengthBreakdown(theseReturns, doNumber);
+    $not_hover.append($thisTable);
+    $thisTable.find('.reg-strength-click-notice').show();
 
     for (const regionReturn of theseReturns) {
         const regionName = regionReturn.jurisName;
         const id = regionIDName(regionName);
-        const row = $(`#region-select-${id}`);
+        const row = $thisTable.find(`#region-select-${id}`);
         const [theseDivisionReturns, furtherDivisions] = nextLowerReturns[regionName];
 
         row.css('cursor', 'pointer');
@@ -137,11 +139,15 @@ export function buildClickableRegionalBreakdown(
             if (regionViewBoxes[regionName])
                 zoomTo(calculateViewBox(...regionViewBoxes[regionName]));
 
+            let $thisDivisionTable;
             if (furtherDivisions) {
-                buildClickableRegionalBreakdown(theseDivisionReturns, furtherDivisions, null, total_votes, true);
+                $thisDivisionTable = buildClickableRegionalBreakdown(theseDivisionReturns, furtherDivisions, null, total_votes, true);
             } else {
-                buildRegionalStrengthBreakdown(theseDivisionReturns, true, true, total_votes);
+                $thisDivisionTable = buildRegionalStrengthBreakdown(theseDivisionReturns, true, true, total_votes);
             }
+            $thisTable.hide();
+            $thisDivisionTable.show();
+            $not_hover.append($thisDivisionTable);
 
             theseDivisionReturns.forEach((dr, i) => {
                 const $label = $(`text#path-label-${regionIDName(dr.jurisName)}`);
@@ -153,18 +159,16 @@ export function buildClickableRegionalBreakdown(
                 $label.show();
             });
 
-            const $numHeader = $('.num-header').first();
+            const $numHeader = $thisDivisionTable.find('.num-header').first();
             if ($numHeader.length) {
                 const $btn = $(
                     '<button title="Back to previous level"><i class="fa-solid fa-rotate-left"></i></button>'
                 );
                 $btn.off('click').on('click', () => {
-                    buildClickableRegionalBreakdown(theseReturns, nextLowerReturns, region_border_chain, total_votes, doNumber);
-                    $numHeader.append($btn);
-                    if (regionViewBoxes[regionName]) {
+                    $thisDivisionTable.hide();
+                    $thisTable.show();
+                    if (regionViewBoxes[regionName])
                         zoomToFull();
-                        $numHeader.empty();
-                    }
                     region_border_chain?.attr('stroke', 'white').attr('stroke-width', '1px');
                     $(`svg #${id}`).removeAttr('transform');
                     $(`svg text`).each(function () { $(this).show(); });
@@ -174,4 +178,6 @@ export function buildClickableRegionalBreakdown(
 
         });
     }
+
+    return $thisTable;
 }

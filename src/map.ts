@@ -51,17 +51,16 @@ async function updateWithRegions(race_name: string) {
 
 async function updateWithCounties(race_name: string, county?: string) {
     const topology = await fetchTopography('src/topo/GA-COUNTIES.json');
-    return withLocalResults(localReturns => drawMap(topology, localReturns), race_name, county)
+    return withLocalResults(localReturns => drawMap(topology, localReturns, null, false, false, true), race_name, county)
         .then(recolorWorker);
 }
 
 async function updateWithPrecincts(race_name: string, county?: string) {
     const topology = await fetchTopography('src/topo/GA-PRECINCTS.json');
-    topology.objects.paths = { geometries: topology.objects.objects.geometries, type: 'GeometryCollection' };
     topology.objects.paths.geometries.map((path: any) =>
         path.properties.name = `${path.properties.COUNTY} - ${path.properties.PRECINCT_N}`);
     const county_topology = await fetchTopography('src/topo/GA-COUNTIES.json');
-    return withLocalResults(localReturns => drawMap(topology, getPrecinctReturns(localReturns), county_topology), race_name, county)
+    return withLocalResults(localReturns => drawMap(topology, getPrecinctReturns(localReturns), county_topology, false, false, true), race_name, county)
         .then(recolorWorker);
 }
 

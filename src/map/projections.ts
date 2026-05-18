@@ -16,12 +16,15 @@ export async function setUpProjection(race_name: string, topojsonPath: string, b
             changeSelection('map-geo', buttonID);
             $('#warn-projections').show();
 
+            const $not_hover = getNotHover();
+
             if (clipGroup.chamberReference) {
                 const tally = createTally(clipGroup.chamberReference, localReturns);
-                buildLegislativeDistrictBreakdown(tally);
+                $not_hover.append(buildLegislativeDistrictBreakdown(tally));
 
             } else {
-                buildRegionalStrengthBreakdown(localReturns);
+                $not_hover.append(buildRegionalStrengthBreakdown(localReturns));
+
             }
         });
 }
@@ -158,13 +161,13 @@ export function createTally(ref: ChamberReference, localReturns: LocalReturn[]):
 
 export function buildLegislativeDistrictBreakdown(legislativeTally: LegislativeTally) {
     const $template = $('#leg-district-breakdown-temp');
-    const $not_hover = getNotHover();
-    $not_hover.append($template.html());
+    const $table = $('<div/>');
+    $table.append($template.html());
 
     let gop_total = 0;
     let dem_total = 0;
 
-    const $tbody = $not_hover.find('tbody.candidate-list-lb').first();
+    const $tbody = $table.find('tbody.candidate-list-lb').first();
     const candidatesSorted = Object.entries(legislativeTally)
         .toSorted(([, districtsA], [, districtsB]) =>
             [...Object.values(districtsA)].reduce((t, l) => t + l) -
@@ -188,8 +191,10 @@ export function buildLegislativeDistrictBreakdown(legislativeTally: LegislativeT
         `);
     }
 
-    $not_hover.find('.leg-breakdown-sub.gop').html(`${gop_total}`);
-    $not_hover.find('.leg-breakdown-sub.dem').html(`${dem_total}`);
-    $not_hover.find('.leg-breakdown-big-total').html(`${gop_total + dem_total}`);
+    $table.find('.leg-breakdown-sub.gop').html(`${gop_total}`);
+    $table.find('.leg-breakdown-sub.dem').html(`${dem_total}`);
+    $table.find('.leg-breakdown-big-total').html(`${gop_total + dem_total}`);
+
+    return $table;
 }
 

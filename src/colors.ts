@@ -155,8 +155,10 @@ export function createInspectionGradient(ballotOptions: BallotOption[]): JQuery<
     $gradient.append(`<div class="gradient-header"></div>`);
     for (let r = 0; r <= 1; r += 0.1)
         $gradient.append(`<div class="gradient-header">${Math.round(r * 100)}</div>`);
+
+    const legendLabels = makeLegend(ballotOptions.map(bo => bo.name));
     for (let ballotOption of ballotOptions) {
-        $gradient.append(`<span class="gradient-margin">${ballotOption.name}</span>`);
+        $gradient.append(`<span class="gradient-margin">${legendLabels[ballotOption.name]}</span>`);
         let color = getColor(ballotOptions, ballotOption);
 
         for (let r = 0; r <= 1; r += 0.1) {

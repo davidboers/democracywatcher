@@ -107,17 +107,12 @@ th.num-header {
     padding: 0;
 }
 
-.reg-strength-breakdown tr .reg-brk-name {
-    text-align: right;
+.reg-strength-breakdown tr td {
+    text-align: center;
 }
 
 .reg-strength-breakdown tr .reg-brk-points {
-    text-align: center;
     min-width: 5em;
-}
-
-.reg-strength-breakdown tr .reg-brk-votebase {
-    text-align: center;
 }
 
 .reg-strength-breakdown tr .reg-brk-members {
