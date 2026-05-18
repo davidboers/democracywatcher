@@ -15,6 +15,10 @@ export type ReportingStatuses = [
 export function combineReportingStatusList(reportingStatusList: (ReportingStatuses | ReportingStatus)[]): ReportingStatus {
     reportingStatusList = reportingStatusList.map(combineReportingStatuses);
 
+    if (reportingStatusList.length === 0) {
+        throw new Error('No reporting status data');
+    }
+
     let any_not = false;
     let any_enc = false;
     let any_fully = false;
