@@ -12,10 +12,13 @@ const color_palette = [
     'crimson',
     'teal',
     'pink',
-    'royalblue',
+    'royalblue'
+];
+
+const color_palette_extended = [
+    'tomato',
     'saddlebrown',
-    'springgreen',
-    'tomato'
+    'springgreen'
 ];
 
 const DEM_COLOR = 'royalblue';
@@ -67,6 +70,7 @@ function getSortedColorPalette(options: BallotOption[]): string[] {
     if (sortedPalettes[hash]) return sortedPalettes[hash];
     const rng = seedrandom(hash);
     const sorted_color_palette = color_palette.toSorted(() => (rng() * 2 - 1) - (rng() * 2 - 1));
+    sorted_color_palette.push(...color_palette_extended.toSorted(() => (rng() * 2 - 1) - (rng() * 2 - 1)));
 
     let label: keyof typeof party_label_colors;
     for (label in party_label_colors) {
