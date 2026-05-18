@@ -2,9 +2,15 @@
 import { getColor, nameToHex } from './colors.js';
 import { withFullResults } from './data/total-votes.js';
 import { BallotItem, BallotOption, candidateCompare, totalVotes, votesFor } from './data/structures.js';
-import { callRace, raceStatus, Runoff, Special, Status, statusString, Winner } from './race-caller.js';
-import { formatNum, preciseShare, redirectWithRaceName, updateHtml } from './utils.js';
+import { callRace, Runoff, Special, Status, statusString, Winner } from './race-caller.js';
+import { formatNum, preciseShare, queryCounty, redirectWithRaceName, updateHtml } from './utils.js';
 import { ReportingGroup } from './data/structures.js';
+
+var status: Status = Status.AwaitingResults;
+
+export function setStatus(newStatus: Status) {
+    status = newStatus;
+}
 
 const CAND_LIST_TEMPLATE = `
     <div class="candidate-details-holder">
@@ -34,7 +40,6 @@ export function makeListEntry(ballotOption: BallotOption, total_votes: number, b
 
     $list_entry.addClass('candidate-list-entry');
 
-    const status = raceStatus(ballotItem);
     const share = votesFor(ballotOption, filterGroup) / total_votes * 100;
 
     const candidate_color = getColor(ballotItem.ballotOptions, ballotOption);
@@ -73,6 +78,13 @@ export function makeListEntry(ballotOption: BallotOption, total_votes: number, b
     return $list_entry;
 }
 
+export function makeDummyEntry() {
+    const $list_entry = $(`<div>${CAND_LIST_TEMPLATE}</div>`);
+    $list_entry.addClass('candidate-list-entry');
+    $list_entry.find('.candidate-color-box').hide();
+    return $list_entry;
+}
+
 export function setRace(ballotItem: BallotItem) {
     const rn = ballotItem.name;
 
@@ -90,10 +102,9 @@ export function setRace(ballotItem: BallotItem) {
     $race_name.removeClass(dem).removeClass(gop).removeClass(np);
     $race_name.addClass(party);
 
-    const status = raceStatus(ballotItem);
     const call = callRace(ballotItem);
     updateHtml($status_indicator, statusString(status));
-    if (Object.hasOwn(call, 'msg')) {
+    if (status !== Status.AwaitingResults && Object.hasOwn(call, 'msg')) {
         updateHtml($('#status-special'), (call as Special).msg);
     } else {
         $('#status-special').empty();
@@ -141,7 +152,6 @@ function displayNonStaticData(ballotItem: BallotItem, filterGroup?: ReportingGro
     $candidate_list.empty();
 
     const votes_left = 0;
-    const status = raceStatus(ballotItem);
     const call = callRace(ballotItem);
     const call_results = (status === Status.EffectivelyFinal || status === Status.Final) && (!filterGroup);
     const filtered_total_results = (filterGroup) ? totalVotes(ballotItem.ballotOptions, filterGroup) : call.total_votes;
@@ -253,7 +263,9 @@ function buildFilterButton(ballotItem: BallotItem, id: string, filterGroup: Repo
 }
 
 void function () {
-    $('#map').on('click', () => redirectWithRaceName('./map.html', $('#race-name').html()));
-    $('#marimekko').on('click', () => redirectWithRaceName('./marimekko.html', $('#race-name').html()));
-    $('#progress-tracker').on('click', () => redirectWithRaceName('./progress.html', $('#race-name').html()));
+    const county = queryCounty();
+
+    $('#map').on('click', () => redirectWithRaceName('./map.html', $('#race-name').html(), county || undefined));
+    $('#marimekko').on('click', () => redirectWithRaceName('./marimekko.html', $('#race-name').html(), county || undefined));
+    $('#progress-tracker').on('click', () => redirectWithRaceName('./progress.html', $('#race-name').html(), county || undefined));
 }();

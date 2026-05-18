@@ -1,5 +1,5 @@
 import { BallotItem, BallotOption, candidateCompare, leading, totalVotes } from './data/structures.js';
-import { combineReportingStatusList } from './data/reporting.js';
+import { combineReportingStatusList, ReportingStatus } from './data/reporting.js';
 
 export enum Status {
     AwaitingResults,
@@ -9,10 +9,7 @@ export enum Status {
     Final
 };
 
-export function raceStatus(ballotItem: BallotItem): Status {
-    const precinctResults = ballotItem.ballotOptions.map(bo => bo.precinctResults || []).flat();
-    const reportingStatus = combineReportingStatusList(precinctResults.map(pr => pr.reportingStatus));
-
+export function raceStatus(ballotItem: BallotItem, reportingStatus: ReportingStatus): Status {
     switch (reportingStatus) {
         case 'Not Reported':
             return Status.AwaitingResults;

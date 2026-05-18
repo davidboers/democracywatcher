@@ -1,9 +1,11 @@
-import { BallotItem, County, findBallotItem, isIncumbentTrailing, totalVotes } from './data/structures.js';
+import { BallotItem, County, findBallotItem, getPrecinctReturns, isIncumbentTrailing, LocalReturn, totalVotes } from './data/structures.js';
 import * as MediaExport from './data/media-export.js';
 import * as TotalVotes from './data/total-votes.js';
-import { callRace, Runoff } from './race-caller.js';
-import { setRace } from './race.js';
-import { queryCounty, queryRace, redirectWithRaceName } from './utils.js';
+
+import { callRace, raceStatus, Runoff } from './race-caller.js';
+import { makeDummyEntry, setRace, setStatus } from './race.js';
+import { formatCountyNameAsValue, queryCounty, queryRace, redirectWithRaceName } from './utils.js';
+import { combineReportingStatusList } from './data/reporting.js';
 
 interface PanelSection {
     name: PanelSectionName,
@@ -31,8 +33,13 @@ PanelSectionName.DistrictAttornies, PanelSectionName.PartyQuestions]
 const STATEWIDE_OFFICERS = ['Governor', 'Lieutenant Governor', 'Secretary of State', 'Attorney General', 'Commissioner of Agriculture',
     'Commissioner of Insurance', 'State School Superintendent', 'Commissioner of Labor', 'PSC'];
 
-function sortIntoSection(ballotItem: BallotItem): PanelSectionName {
-    const testPrefixes = (qs: string[]) => qs.filter(q => ballotItem.name.startsWith(q)).length > 0;
+function sortIntoSection(race: BallotItem | string): PanelSectionName {
+    const name = (typeof race === 'string') ? race : race.name;
+
+    const testPrefixes = (qs: string[]) => qs.filter(q => name.startsWith(q)).length > 0;
+
+    if (/Special/.exec(name)) // This is to prevent errors when mixing regular primaries with blanket primaries, which are classified as nonpartisan races by the software.
+        return PanelSectionName.OtherLocalRaces;
 
     if (testPrefixes(['US Senate', 'US House']))
         return PanelSectionName.Congressional;
@@ -40,47 +47,48 @@ function sortIntoSection(ballotItem: BallotItem): PanelSectionName {
     if (testPrefixes(STATEWIDE_OFFICERS))
         return PanelSectionName.StatewideOfficers;
 
-    if (ballotItem.name.startsWith('State Senate'))
+    if (name.startsWith('State Senate'))
         return PanelSectionName.StateSenate;
 
-    if (ballotItem.name.startsWith('State House'))
+    if (name.startsWith('State House'))
         return PanelSectionName.StateHouseOfRepresentatives;
 
-    if (ballotItem.name.startsWith('Justice - Supreme Court of Georgia'))
+    if (name.startsWith('Justice - Supreme Court of Georgia'))
         return PanelSectionName.GeorgiaSupremeCourt;
 
-    if (ballotItem.name.startsWith('Judge - Court of Appeals of Georgia'))
+    if (name.startsWith('Judge - Court of Appeals of Georgia'))
         return PanelSectionName.GeorgiaCourtOfAppeals;
 
-    if (ballotItem.name.startsWith('Judge - Superior Court'))
+    if (name.startsWith('Judge - Superior Court'))
         return PanelSectionName.SuperiorCourts;
 
-    if (ballotItem.name.startsWith('District Attorney'))
+    if (name.startsWith('District Attorney'))
         return PanelSectionName.DistrictAttornies;
 
-    if (ballotItem.name.startsWith('Party Question'))
+    if (name.startsWith('Party Question'))
         return PanelSectionName.PartyQuestions;
 
-    if (testPrefixes(['Solicitor General', 'State Court Solicitor', 'Solicitor-General']))
+    if (/(Solicitor[-\s]General|State Court Solicitor|Surveyor|Elections Board Member)/.exec(name))
         return PanelSectionName.CountyExecutives;
 
-    if (testPrefixes(['County Commission']))
+    if (/(?:County Commission)/.exec(name))
         return PanelSectionName.CountyCommission;
 
-    if (testPrefixes(['Board of Education', 'BOE', 'County BOE']))
+    if (/(?:LOST|Homestead Exemption|City of Lawrenceville Annexation|General Obligation Bond|Nashville Freeport Exemption|Distilled Spirits|Referendum|Sales [Aa]nd Use Tax)/.exec(name))
+        return PanelSectionName.LocalReferenda;
+    // Referenda have to go before school board, e.g.: Homestead Exemption From School Board Ad Valorem Taxes
+
+    if (/(?:County )?(?:Board of Education|BOE|School Board)/.exec(name))
         return PanelSectionName.BoardOfEducation;
 
-    if (testPrefixes(['State Court', 'Judge, State Court']))
+    if (/(?:Judge.*)?State Court/.exec(name))
         return PanelSectionName.StateCourt;
 
-    if (testPrefixes(['Chief Magistrate']))
+    if (/Magistrate/.exec(name))
         return PanelSectionName.ChiefMagistrate;
 
     if (testPrefixes(['Juvenile Court Judge']))
         return PanelSectionName.JuvenileCourtJudge;
-
-    if (testPrefixes(['ESPLOST', 'Homestead Exemption', 'City of Lawrenceville Annexation']))
-        return PanelSectionName.LocalReferenda;
 
     return PanelSectionName.OtherLocalRaces;
 }
@@ -92,6 +100,7 @@ function getParty(ballotItem: BallotItem): string | void {
 
 function getButtonName(name: string) {
     name = name.replace(/ - (Dem|Rep)/, ''); // Strip party labels
+    const section = sortIntoSection(name);
 
     switch (name) {
         case 'Lieutenant Governor':
@@ -126,15 +135,17 @@ function getButtonName(name: string) {
         return circuit[1];
 
     let office;
-    if (office = /(Solicitor-?General).*/.exec(name)) {
+    if (office = /(Solicitor[-\s]General).*/.exec(name))
         return office[1];
-    }
 
     if (name === 'County Commission Chairperson')
         return 'Chairperson';
 
-    if (district = /County (?:BOE|Commission(?:er)?) - District ([0-9]+)/.exec(name))
-        return `District ${district[1]}`;
+    if ([PanelSectionName.CountyCommission, PanelSectionName.BoardOfEducation].includes(section) && (district = /(District|Post) ([0-9]+)/.exec(name)) !== null)
+        return `${district[1]} ${district[2]}`;
+
+    if ([PanelSectionName.CountyCommission, PanelSectionName.BoardOfEducation].includes(section) && (district = /At[-\s]Large/.exec(name)) !== null)
+        return 'At Large';
 
     let court;
     let incumbent_judge;
@@ -169,9 +180,8 @@ function makeButtonFor(ballotItem: BallotItem): JQuery<HTMLElement> {
     }(callRace(ballotItem));
 
     $button.on('click', function () {
-        setRace(ballotItem);
-        $('#selector-container').hide();
-        $('#race-container').show();
+        const county = $('#filter-by-county').val();
+        redirectWithRaceName('./race.html', ballotItem.name, (county === 'state') ? undefined : county?.toString());
     });
 
     return $button;
@@ -222,7 +232,13 @@ function updateSelectionPanel(ballotItems: BallotItem[], filterState: boolean = 
             ((section.races as PartyItems)[party] ||= []).push(bi);
 
         } else {
-            (section.races as BallotItem[]).push(bi);
+            try {
+                (section.races as BallotItem[]).push(bi);
+            } catch (err: unknown) {
+                if (err instanceof TypeError) {
+                    console.warn(`Mixing partisan and nonpartisan races! Section name: ${section_name}, Race name: ${bi.name}`);
+                }
+            }
         }
 
         return acc;
@@ -265,10 +281,6 @@ function updateSelectionPanel(ballotItems: BallotItem[], filterState: boolean = 
     return ballotItems;
 }
 
-function formatCountyNameAsValue(county_name: string) {
-    return county_name.replace(' County', '').toLowerCase();
-}
-
 function updateRaceSelector(root: MediaExport.Root): Promise<BallotItem[]> {
     const county_names = root.localResults.map(lr => lr.name);
     const $county_filter = $('#filter-by-county');
@@ -276,7 +288,6 @@ function updateRaceSelector(root: MediaExport.Root): Promise<BallotItem[]> {
     $county_filter.append('<option value="state"></option>');
     county_names.sort();
     county_names.forEach(county_name => {
-        county_name = county_name.replace(' County', '');
         let value = formatCountyNameAsValue(county_name);
         $county_filter.append(`<option value="${value}">${county_name}</option>`);
     });
@@ -320,10 +331,26 @@ function filterRaces(groupClassName: string, className?: string) {
     });
 }
 
-async function importAndUpdate() {
-    const promise = MediaExport.withRoot(MediaExport.DEFAULT_SOURCE, updateRaceSelector);
+async function importAndUpdate(preselectedRaceName: string | null) {
+    const promise = MediaExport.withRoot(MediaExport.DEFAULT_SOURCE, root => updateRaceSelector(root).then(ballotItems =>
+        [(preselectedRaceName) ? MediaExport.localReturnsForRace(preselectedRaceName, root.localResults) : undefined,
+            ballotItems] as [LocalReturn[] | undefined, BallotItem[]]
+    ));
 
-    /// Loading screen
+    // Loading screen
+
+    if (preselectedRaceName) {
+        $('#race-name').html(preselectedRaceName);
+        for (let i = 0; i < 10; i++) {
+            $('#candidate-list').append(makeDummyEntry());
+        }
+        $('#race-container').show();
+        $('#selector-container').hide();
+
+    } else {
+        $('#race-container').hide();
+        $('#selector-container').show();
+    }
 
     return promise;
 }
@@ -355,7 +382,6 @@ void function () {
                 filterRaces(groupClassName, new_value);
                 break;
         }
-
     });
 
     $('#filter-by-party').on('change', () => {
@@ -371,20 +397,26 @@ void function () {
                 filterRaces(groupClassName, new_value as string);
                 break;
         }
-
     });
 
-    importAndUpdate().then(ballotItems => {
-        const preselectedRaceName = queryRace();
+    const preselectedRaceName = queryRace();
+    importAndUpdate(preselectedRaceName).then(([localReturns, ballotItems]) => {
         let preselectedRace;
-        if (preselectedRaceName && (preselectedRace = findBallotItem(ballotItems, preselectedRaceName))) {
-            setRace(preselectedRace);
-            $('#race-container').show();
-            $('#selector-container').hide();
 
-        } else {
-            $('#race-container').hide();
-            $('#selector-container').show();
+        if (preselectedRaceName) {
+            if (preselectedRace = findBallotItem(ballotItems, preselectedRaceName)) {
+                if (localReturns) {
+                    const precinctResults = localReturns.map(lr => lr.ballotItem.ballotOptions.map(bo => bo.precinctResults || []).flat()).flat();
+                    const reportingStatus = combineReportingStatusList(precinctResults.map(pr => pr.reportingStatus));
+                    setStatus(raceStatus(preselectedRace, reportingStatus));
+                }
+                setRace(preselectedRace);
+
+            } else {
+                // Failed to find preselected race
+                $('#race-container').hide();
+                $('#selector-container').show();
+            }
         }
     });
 }();

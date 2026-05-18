@@ -138,7 +138,7 @@ function groupByCounty(localReturns: LocalReturn[]): LocalGroup[] {
 // Entrypoint 
 
 void function () {
-    const race_name = setupAbstract();
+    const [race_name, county] = setupAbstract();
 
-    if (race_name) withLocalResults(updateMarimekko, race_name);
+    if (race_name) withLocalResults(updateMarimekko, race_name, county || undefined);
 }();

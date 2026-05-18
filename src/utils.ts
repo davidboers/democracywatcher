@@ -1,16 +1,12 @@
+export function formatCountyNameAsValue(county_name: string) {
+    return county_name.replace(' County', '').toLowerCase();
+}
 
-export function createJQuerySVG(html: string) {
-    const svgNS = 'http://www.w3.org/2000/svg';
-    const $obj = $(html)[0];
-    const elem = document.createElementNS(svgNS, $obj.tagName.toLowerCase());
-    $.each($obj.attributes, function () {
-        $(elem).attr(this.name, this.value);
-    });
-    $(html).children().each(function () {
-        $(elem).append(createJQuerySVG($(this)[0].outerHTML));
-    });
-    elem.innerHTML = $obj.innerHTML;
-    return elem;
+export function toObject<T>(keys: string[], labels: T[]): { [key: string]: T } {
+    return Object.fromEntries(keys.reduce((acc: [string, T][], key, i) => {
+        acc.push([key, labels[i]]);
+        return acc;
+    }, []));
 }
 
 export function updateHtml($obj: JQuery<HTMLElement>, new_html: string) {
@@ -38,20 +34,105 @@ export function formatTimestamp(timestamp: number): string {
     return `${date.getMonth()}/${date.getDate()} ${date.getHours() % 12}:${minutes} ${ampm}`;
 }
 
+// Regex name parser
+
+export interface PersonalName {
+    fullName: string;
+    firstName: string;
+    lastName: string;
+};
+
+export function parseName(name: string): PersonalName | null {
+    const regex = /^([\S]+)(?: [\S]+)*? ([\S]+?)(?:,? (?:I+|[sj]r\.?))?(?: ?\(I\))?$/gimu;
+    let result;
+    if (result = regex.exec(name)) {
+        const [fullName, firstName, lastName] = result;
+        return { fullName, firstName, lastName };
+    }
+
+    return null;
+}
+
+/** Takes a list of personal names, and allows the last names to be used as labels for a legend. 
+ * If there are multiple candidates with the same last name, it will add the first initials.
+ */
+export function createLegendLabels(personalNames: PersonalName[]): string[] {
+    return personalNames.reduce((labels: string[], personalName) => {
+        const lastName = personalName.lastName;
+
+        if (labels.includes(lastName)) {
+            const indexOfExistingLabel = labels.indexOf(lastName);
+            const addition1 = personalNames[indexOfExistingLabel].firstName;
+            const addition2 = personalName.firstName;
+            let newNameForExisting = composeLabelWith(lastName, addition1);
+            let newName = composeLabelWith(lastName, addition2);
+            labels[indexOfExistingLabel] = newNameForExisting;
+            labels.push(newName);
+
+        } else {
+            labels.push(lastName);
+        }
+
+        return labels;
+    }, []);
+}
+
+function composeLabelWith(lastName: string, addition: string) {
+    return `${addition} ${lastName}`;
+}
+
+export function makeLegend(names: string[]): { [key: string]: string } {
+    if (names.includes('No')) // Referenda
+        return toObject(names, names);
+
+    const personalNames = names.map(parseName);
+    const parsedNameDerivedLabels = createLegendLabels(personalNames.filter(pn => pn !== null));
+    let parsedLi = 0;
+    const labels = personalNames.reduce((acc: string[], personalName, i) => {
+        if (personalName === null) {
+            acc.push(names[i]);
+
+        } else {
+            acc.push(parsedNameDerivedLabels[parsedLi]);
+            parsedLi++;
+        }
+
+        return acc;
+    }, []);
+
+    return toObject(names, labels);
+}
+
 // Graphs
+
+export function createJQuerySVG(html: string) {
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const $obj = $(html)[0];
+    const elem = document.createElementNS(svgNS, $obj.tagName.toLowerCase());
+    $.each($obj.attributes, function () {
+        $(elem).attr(this.name, this.value);
+    });
+    $(html).children().each(function () {
+        $(elem).append(createJQuerySVG($(this)[0].outerHTML));
+    });
+    elem.innerHTML = $obj.innerHTML;
+    return elem;
+}
 
 export function setupAbstract() {
     const race_name = queryRace();
+    const county = queryCounty();
 
-    if (!race_name) return;
+    if (race_name) {
+        $('#race-name').html(race_name);
 
-    $('#race-name').html(race_name);
+        $('#go-back').on('click', function () {
+            redirectWithRaceName('./race.html', race_name, county || undefined);
+        });
 
-    $('#go-back').on('click', function () {
-        redirectWithRaceName('./race.html', race_name);
-    });
+    }
 
-    return race_name;
+    return [race_name, county];
 }
 
 // Race search queries
