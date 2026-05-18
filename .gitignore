@@ -10,3 +10,4 @@ todo.md
 # Data files
 data/*
 latest.json
+*.json.gz

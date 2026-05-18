@@ -4,6 +4,7 @@ import schedule
 import json
 import re
 import requests
+import gzip
 from pathlib import Path
 from datetime import datetime
 
@@ -57,7 +58,7 @@ def job():
 
         for localResult in data['localResults']:
             del localResult['id']
-            del localResult['reportingStatuses'] # /// This may need to go if we want to improve county reporting map
+            del localResult['reportingStatuses']
             for ballotItem in localResult['ballotItems']:
                 del ballotItem['type']
                 del ballotItem['voteFor']
@@ -73,6 +74,8 @@ def job():
                 for ballotOption in ballotItem['ballotOptions']:
                     del ballotOption['politicalParty']
                     del ballotOption['groupResults']
+
+                    ballotOption['name'] = re.sub(spanish_regex, '', ballotOption['name'])
                     for precinctResults in ballotOption['precinctResults']:
                         del precinctResults['isVirtual']
                         #del precinctResults['voteCount']
@@ -85,10 +88,10 @@ def job():
         if not(last_version) or last_version != data:
             last_version = data
             f = timestamp.strftime(ts.date_file_format)
-            with open(f'data/{f}', 'w') as file:
-                json.dump(data, file)
-            with open(f'latest.json', 'w') as file:
-                json.dump(data, file)
+            with gzip.open(f'data/{f}.gz', 'wb') as file:
+                file.write(json.dumps(data).encode('utf-8'))
+            with gzip.open(f'latest.json.gz', 'wb') as file:
+                file.write(json.dumps(data).encode('utf-8'))
 
     else:
         print(f'Error: Failed at {datetime.now()} with message: {response}, {response.reason}')

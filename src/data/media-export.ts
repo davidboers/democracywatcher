@@ -1,12 +1,8 @@
-import { BallotItem, County, countyReportingStatusFromPrecinctLevel, findBallotItem, LocalReturn, PrecinctResults } from './structures.js';
+import { formatCountyNameAsValue } from '../utils.js';
 
-export const PSC_PRIMARY_2025 = 'https://results.sos.ga.gov/cdn/results/Georgia/export-2025PSCPrimary.json';
-export const MAY_12_SPC_2026 = 'https://results.sos.ga.gov/cdn/results/Georgia/export-51226SpecialElection.json';
-//export const GEN_PRIMARY_2026 = 'https://results.sos.ga.gov/cdn/results/Georgia/export-51926GeneralPrimary.json'
-//export const GEN_PRIMARY_2026 = 'latest.json'
-export const GEN_ELECTION_2024 = 'https://results.sos.ga.gov/cdn/results/Georgia/export-2024NovGen.json';
+import { BallotItem, County, countyReportingStatusFromPrecinctLevel, findBallotItem, LocalReturn } from './structures.js';
 
-export const DEFAULT_SOURCE = 'latest.json';
+export const DEFAULT_SOURCE = 'latest.json.gz';
 
 export type Root = {
     results: { ballotItems: BallotItem[] },
@@ -15,7 +11,9 @@ export type Root = {
 
 async function worker(url: string): Promise<Root> {
     return fetch(url)
-        .then(async response => await response.json())
+        .then(async response => (await response.blob()).stream().pipeThrough(new DecompressionStream('gzip')))
+        .then(async decompressedStream => await new Response(decompressedStream).text())
+        .then(async decompressedJSON => JSON.parse(decompressedJSON))
     /*.then((response: Root) => {
         response.results.ballotItems.map(bi => bi.ballotOptions.map(bo => bo.voteCount = Math.round(Math.random() * 1000)));
 
@@ -76,10 +74,15 @@ export async function getLocalResults(url: string = DEFAULT_SOURCE): Promise<Cou
         .then(response => response.localResults);
 }
 
-export async function withLocalResults<T>(pred: (_: LocalReturn[]) => T, race_name: string, url: string = DEFAULT_SOURCE): Promise<T> {
+export async function withLocalResults<T>(pred: (_: LocalReturn[]) => T, race_name: string, county?: string, url: string = DEFAULT_SOURCE): Promise<T> {
     return getLocalResults(url)
         .then(counties => {
-            const localReturns = localReturnsForRace(race_name, counties);
+            let localReturns = localReturnsForRace(race_name, counties);
+
+            if (county) {
+                localReturns = localReturns.filter(lr => formatCountyNameAsValue(lr.jurisName) === county);
+            }
+
             return pred(localReturns);
         });
 }
@@ -96,7 +99,7 @@ export function localReturnsForRace(race_name: string, counties: County[]): Loca
             return {
                 jurisName: county.name,
                 ballotItem: ballotItem,
-                reportingStatus: countyReportingStatusFromPrecinctLevel(county) /// See Python script notes
+                reportingStatus: countyReportingStatusFromPrecinctLevel(county)
             };
         }).filter((item) => item !== null);
 }
