@@ -1,14 +1,22 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import webpack from 'webpack';
+const { ProvidePlugin } = webpack;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const __distname = path.resolve(__dirname, 'dist');
 
 export default {
-    entry: './src/map.ts',
+    entry: {
+        map: './src/map.ts',
+        marimekko: './src/marimekko.ts',
+        progress: './src/progress.ts',
+        race: './src/race-select.ts' // Do we need race.ts too?
+    },
     output: {
-        filename: 'dist/map.js',
-        path: __dirname
+        filename: '[name].bundle.js',
+        path: __distname
     },
     module: {
         rules: [
@@ -22,5 +30,5 @@ export default {
         extensionAlias: { '.js': ['.ts', '.js'] },
         extensions: ['.ts', '.js']
     },
-    devtool: 'inline-source-map',
+    devtool: 'inline-source-map'
 };

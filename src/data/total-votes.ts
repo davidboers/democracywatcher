@@ -1,5 +1,5 @@
 
-declare const XLSX: any;
+import * as XLSX from 'xlsx';
 
 import { ReportingGroup, BallotItem, BallotOption, GroupResults } from './structures.js';
 
@@ -11,7 +11,7 @@ export const MAR_10_SPC_2026 = 'https://results.sos.ga.gov/cdn/results/09378a07-
 export const GEN_PRIMARY_2024 = 'https://results.sos.ga.gov/cdn/results/09378a07-e6cf-4f66-be7c-ca4aa534f99a/Total%20Votes%20Results_dd4a2851-411f-4720-abea-3ce4cf813d1f.xlsx';
 export const PSC_PRIMARY_2025 = 'https://results.sos.ga.gov/cdn/results/09378a07-e6cf-4f66-be7c-ca4aa534f99a/Total%20Votes%20Results_1f7bc44e-ecd2-4e56-a5bf-73e0401b5bf7.xlsx';
 
-export const DEFAULT_SOURCE = MAY_12_SPC_2026;
+export const DEFAULT_SOURCE = GEN_PRIMARY_2026;
 
 function stripSpanish(input: string): string {
     if (!input) return input;
@@ -117,10 +117,10 @@ async function worker(url: string): Promise<[TotalVotesByGroupEntry[], CountyRes
     return fetch(url)
         .then(async function (response) {
             const wb = XLSX.read(await response.arrayBuffer());
-            const groups: TotalVotesByGroupEntry[] = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { header: 1 })
+            const groups = (XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { header: 1 }) as TotalVotesByGroupEntryRow[])
                 .map(makeTotalVotesByGroupEntry);
 
-            return [groups, XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[2]], { header: 1 })
+            return [groups, (XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[2]], { header: 1 }) as CountyResultsEntryRow[])
                 .map(makeCountyResultsEntry)]
         });
 }
