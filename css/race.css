@@ -64,7 +64,7 @@
 }
 
 #race-info,
-#stats {
+#stat-summary {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1rem;
@@ -72,25 +72,42 @@
     margin: 0;
 }
 
+#stats {
+    display: flex;
+    gap: 1rem;
+}
+
+#stat-summary {
+    flex: 1;
+}
+
 #status,
 #reporting,
 #swap-party,
-#stats>div {
+div.stat-div {
     min-width: 0;
 }
 
 #status,
-#reporting {
+#reporting,
+div.stat-div {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+#status,
+#reporting,
+div.stat-div,
+#filter-vote-type {
     padding: 1.1rem 1.2rem;
     background: #f8fafc;
-    border-radius: 20px;
+    border-radius: 10px;
     border: 1px solid rgba(15, 23, 42, 0.1);
 }
 
-#status {
+#status,
+div.stat-div {
     justify-content: center;
 }
 
@@ -107,6 +124,11 @@
     font-weight: 700;
     font-size: 1rem;
     transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+#swap-party.disabled {
+    color: gray;
+    font-size: 0.75em;
 }
 
 #swap-party:hover,
@@ -138,7 +160,7 @@
     transition: width 0.35s ease;
 }
 
-#reporting-percentage {
+#reporting-ratio {
     font-weight: 700;
     color: #111827;
     text-align: center;
@@ -333,19 +355,13 @@ label {
     font-size: 1rem;
 }
 
-#stats>div {
-    padding: 1rem;
-    background: #f8fafc;
-    border-radius: 20px;
-    border: 1px solid rgba(15, 23, 42, 0.08);
+div.stat-div {
+    text-align: center;
 }
 
-#stats>div:first-child {
-    min-height: 88px;
-}
-
-#stats>div:nth-child(2) {
-    min-height: 88px;
+#stat-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 @media (max-width: 900px) {
@@ -389,7 +405,7 @@ label {
     #reporting,
     #status,
     #swap-party,
-    #stats>div {
+    #stats div.stat-div {
         width: 100%;
     }
 

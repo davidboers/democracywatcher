@@ -131,7 +131,7 @@ async function workerSpecific(race_name: string, url: string): Promise<[TotalVot
     );
 }
 
-export async function withFullResults(pred: (_: BallotItem) => any, race_name: string, url: string = DEFAULT_SOURCE) {
+export async function withFullResults<T>(pred: (_: BallotItem) => T, race_name: string, url: string = DEFAULT_SOURCE): Promise<T> {
     return workerSpecific(race_name, url)
         .then(mergeToBallotItem)
         .then(pred);

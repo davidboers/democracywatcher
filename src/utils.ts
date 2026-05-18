@@ -1,3 +1,9 @@
+export const ENUM_CAMEL_WORD_REGEX = /(?<!^)([A-Z])/g;
+
+export function sum(l: number[]): number {
+    return l.reduce((t, li) => t + li, 0);
+}
+
 export function formatCountyNameAsValue(county_name: string) {
     return county_name.replace(' County', '').toLowerCase();
 }
@@ -141,7 +147,7 @@ const URL_BASE = (window.location.origin.includes('dawieboers.com'))
     ? 'https://www.dawieboers.com/democracywatcher/'
     : window.location.origin;
 
-export function redirectWithRaceName(doc: string, race_name?: string, county?: string) {
+export function redirectWithRaceName(doc: string, race_name?: string, county?: string, blockReferesh?: boolean) {
     const url = new URL(doc, URL_BASE);
     if (race_name) {
         url.searchParams.set('race_name', race_name);
@@ -149,7 +155,11 @@ export function redirectWithRaceName(doc: string, race_name?: string, county?: s
             url.searchParams.set('county', county);
         }
     }
-    window.location.href = url.toString();
+
+    if (blockReferesh)
+        window.history.pushState({}, '', url);
+    else
+        window.location.href = url.toString();
 }
 
 export function queryRace(): string | null {

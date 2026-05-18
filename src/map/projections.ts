@@ -2,6 +2,7 @@
 import { getLocalResults, localReturnsForRace } from '../data/media-export.js';
 import { ballotItemReportingStatusFromPrecinctLevel, BallotOption, County, leading, LocalReturn } from '../data/structures.js';
 
+import { sum } from '../utils.js';
 import { recolorMap } from './color-map.js';
 import { drawMap, fetchTopography } from './draw.js';
 import { buildRegionalStrengthBreakdown, changeSelection, getNotHover } from './side.js';
@@ -57,7 +58,7 @@ function clipRace(localReturnsA: LocalReturn[], localReturnsB: LocalReturn[]): B
 
             const filteredPrecincts = precinctResults.filter(pr => precinctsB.includes(pr.id));
             const existingBo = acc.find(bo => bo.id === ballotOption.id);
-            const clippedVotes = filteredPrecincts.map(pr => Object.values(pr.groupResults)).flat().reduce((t, v) => t + v, 0);
+            const clippedVotes = sum(filteredPrecincts.map(pr => Object.values(pr.groupResults)).flat());
 
             if (existingBo) {
                 existingBo.voteCount += clippedVotes;
@@ -170,8 +171,8 @@ export function buildLegislativeDistrictBreakdown(legislativeTally: LegislativeT
     const $tbody = $table.find('tbody.candidate-list-lb').first();
     const candidatesSorted = Object.entries(legislativeTally)
         .toSorted(([, districtsA], [, districtsB]) =>
-            [...Object.values(districtsA)].reduce((t, l) => t + l) -
-            [...Object.values(districtsB)].reduce((t, l) => t + l))
+            sum([...Object.values(districtsA)]) -
+            sum([...Object.values(districtsB)]))
         .reverse().map(([c, _]) => c);
     for (let candidate of candidatesSorted) {
         const byParty = legislativeTally[candidate];

@@ -29,7 +29,7 @@ body {
     margin: 1rem auto;
     padding: 2rem;
     background: #ffffff;
-    border-radius: 28px;
+    border-radius: 14px;
     border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
@@ -66,6 +66,9 @@ body {
     outline-offset: 3px;
 }
 
+#swap-party.disabled,
+#swap-party.disabled:hover,
+#swap-party.disabled:focus-visible,
 .button-set button.disabled,
 .button-set button.disabled:hover,
 .button-set button.disabled:focus-visible {
@@ -73,6 +76,8 @@ body {
     cursor: auto;
 }
 
+#swap-party.disabled:hover,
+#swap-party.disabled:focus-visible,
 .button-set button.disabled:hover,
 .button-set button.disabled:focus-visible {
     transform: translateY(1px);

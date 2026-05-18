@@ -1,5 +1,7 @@
 import { BallotItem, BallotOption, candidateCompare, leading, totalVotes } from './data/structures.js';
-import { combineReportingStatusList, ReportingStatus } from './data/reporting.js';
+import { ReportingStatus } from './data/reporting.js';
+
+import { ENUM_CAMEL_WORD_REGEX } from './utils.js';
 
 export enum Status {
     AwaitingResults,
@@ -34,13 +36,7 @@ export function raceStatus(ballotItem: BallotItem, reportingStatus: ReportingSta
 }
 
 export function statusString(status: Status): string {
-    switch (status) {
-        case Status.AwaitingResults: return 'Awaiting results';
-        case Status.NotFinal: return 'Not final';
-        case Status.ToCloseToCall: return 'Too close to call';
-        case Status.EffectivelyFinal: return 'Effectively final';
-        case Status.Final: return 'Final';
-    }
+    return Status[status].replace(ENUM_CAMEL_WORD_REGEX, ' $1').replace(/(?<!^)[A-Z]/g, (s) => s.toLowerCase());
 }
 
 interface CallBase {

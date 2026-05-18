@@ -44,7 +44,7 @@ export const regionViewBoxes: { [key: string]: [number, number, number, number] 
     'Metro Atlanta': [0.1544, 0.0945, 0.2889, 0.2909],
     'East Georgia': [0.3178, 0.0091, 0.3911, 0.3927],
     'Middle Georgia': [0.0978, 0.0727, 0.7622, 0.7636],
-    'South Georgia': [0.0689, 0.1945, 0.9467, 0.9473],
+    'South Georgia': [0.15, 0.5, 0.8, 0.4],
 }
 
 export function findRegion(regionList: RegionList, county: string) {

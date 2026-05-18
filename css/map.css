@@ -54,7 +54,7 @@ svg * {
 svg text {
     text-anchor: middle;
     dominant-baseline: middle;
-    font-size: 5px;
+    font-size: 10px;
     pointer-events: none;
 }
 
@@ -65,7 +65,8 @@ svg text {
     height: 95%;
 }
 
-#race-name-map {
+#race-name-map,
+#warn-projections {
     margin-block: 0;
     text-align: center;
 }

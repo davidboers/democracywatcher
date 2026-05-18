@@ -3,8 +3,8 @@ import * as MediaExport from './data/media-export.js';
 import * as TotalVotes from './data/total-votes.js';
 
 import { callRace, raceStatus, Runoff } from './race-caller.js';
-import { makeDummyEntry, setRace, setStatus } from './race.js';
-import { formatCountyNameAsValue, queryCounty, queryRace, redirectWithRaceName } from './utils.js';
+import { makeDummyEntry, setRace, setRemoteData } from './race.js';
+import { ENUM_CAMEL_WORD_REGEX, formatCountyNameAsValue, queryCounty, queryRace, redirectWithRaceName, sum } from './utils.js';
 import { combineReportingStatusList } from './data/reporting.js';
 
 interface PanelSection {
@@ -245,7 +245,7 @@ function updateSelectionPanel(ballotItems: BallotItem[], filterState: boolean = 
     }, []);
 
     for (let section of sections) {
-        const section_name = PanelSectionName[section.name].replace(/(?<!^)([A-Z])/g, ' $1').replace(' Of ', ' of ');
+        const section_name = PanelSectionName[section.name].replace(ENUM_CAMEL_WORD_REGEX, ' $1').replace(' Of ', ' of ');
 
         if (section.partisan) {
             const template = $('#selection-panel-section-temp').html();
@@ -406,9 +406,20 @@ void function () {
         if (preselectedRaceName) {
             if (preselectedRace = findBallotItem(ballotItems, preselectedRaceName)) {
                 if (localReturns) {
-                    const precinctResults = localReturns.map(lr => lr.ballotItem.ballotOptions.map(bo => bo.precinctResults || []).flat()).flat();
+                    const precinctResults = localReturns.map(lr =>
+                        lr.ballotItem.ballotOptions.map(bo => bo.precinctResults || []).flat()
+                    ).flat();
                     const reportingStatus = combineReportingStatusList(precinctResults.map(pr => pr.reportingStatus));
-                    setStatus(raceStatus(preselectedRace, reportingStatus));
+                    setRemoteData({
+                        status: raceStatus(preselectedRace, reportingStatus),
+                        precinctsParticipating: sum(localReturns.map(lr => lr.ballotItem.precinctsParticipating as number))
+                            || sum(localReturns.map(lr => lr.ballotItem.ballotOptions[0].precinctResults?.length || 0)),
+                        precinctsReporting: sum(localReturns.map(lr => lr.ballotItem.precinctsReporting as number))
+                            || sum(localReturns.map(lr =>
+                                (lr.ballotItem.ballotOptions[0].precinctResults || []).filter(pr => pr.reportingStatus !== 'Not Reported').length
+                            ))
+                    });
+
                 }
                 setRace(preselectedRace);
 

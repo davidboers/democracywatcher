@@ -13,7 +13,9 @@ const color_palette = [
     'teal',
     'pink',
     'royalblue',
-    'saddlebrown'
+    'saddlebrown',
+    'springgreen',
+    'tomato'
 ];
 
 const DEM_COLOR = 'royalblue';

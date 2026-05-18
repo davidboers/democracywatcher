@@ -6,10 +6,14 @@ import { callRace, Runoff, Special, Status, statusString, Winner } from './race-
 import { formatNum, preciseShare, queryCounty, redirectWithRaceName, updateHtml } from './utils.js';
 import { ReportingGroup } from './data/structures.js';
 
-var status: Status = Status.AwaitingResults;
+var remoteData = {
+    status: Status.AwaitingResults,
+    precinctsParticipating: 0,
+    precinctsReporting: 0
+};
 
-export function setStatus(newStatus: Status) {
-    status = newStatus;
+export function setRemoteData(newRemoteData: typeof remoteData) {
+    remoteData = newRemoteData;
 }
 
 const CAND_LIST_TEMPLATE = `
@@ -56,14 +60,14 @@ export function makeListEntry(ballotOption: BallotOption, total_votes: number, b
     });
 
     $list_entry.find('.candidate-votes').each(function () {
-        if (status === Status.AwaitingResults)
+        if (remoteData.status === Status.AwaitingResults)
             updateHtml($(this), 'Awaiting results');
         else
             updateHtml($(this), formatNum(votesFor(ballotOption, filterGroup)));
     });
 
     $list_entry.find('.candidate-share').each(function () {
-        if (status === Status.AwaitingResults) {
+        if (remoteData.status === Status.AwaitingResults) {
             $(this).hide();
         } else {
             $(this).show();
@@ -103,8 +107,8 @@ export function setRace(ballotItem: BallotItem) {
     $race_name.addClass(party);
 
     const call = callRace(ballotItem);
-    updateHtml($status_indicator, statusString(status));
-    if (status !== Status.AwaitingResults && Object.hasOwn(call, 'msg')) {
+    updateHtml($status_indicator, statusString(remoteData.status));
+    if (remoteData.status !== Status.AwaitingResults && Object.hasOwn(call, 'msg')) {
         updateHtml($('#status-special'), (call as Special).msg);
     } else {
         $('#status-special').empty();
@@ -119,7 +123,7 @@ export function setRace(ballotItem: BallotItem) {
 
     }
     $swap_party.off('click').on('click', function () {
-        const current_party = party === dem ? 'Dem' : 'Rep';
+        const current_party = party === dem ? /Dem$/ : /Rep$/;
         const new_party = party === dem ? 'Rep' : 'Dem';
 
         const $container = $('#race-container');
@@ -127,11 +131,22 @@ export function setRace(ballotItem: BallotItem) {
         // Fade out, fetch, then fade in
         $container.css('opacity', '0.5').css('pointer-events', 'none');
 
-        withFullResults(setRace, rn.replace(current_party, new_party))
+        const fadeBackIn = () => window.requestAnimationFrame(() => {
+            $container.css('opacity', '1').css('pointer-events', 'auto');
+        });
+
+        const newRaceName = rn.replace(current_party, new_party);
+        withFullResults(setRace, newRaceName)
             .then(() => {
-                window.requestAnimationFrame(() => {
-                    $container.css('opacity', '1').css('pointer-events', 'auto');
-                });
+                fadeBackIn();
+                redirectWithRaceName('./race.html', newRaceName, queryCounty() || undefined, true); // Block referesh
+
+            })
+            .catch(() => {
+                fadeBackIn();
+                $swap_party.addClass('disabled');
+                $swap_party.off('click');
+                $swap_party.html('No primary for the other party in this race.');
             });
     });
 
@@ -147,18 +162,18 @@ export function setRace(ballotItem: BallotItem) {
 
 function displayNonStaticData(ballotItem: BallotItem, filterGroup?: ReportingGroup) {
     const $reporting_bar_filled = $('#reporting-bar-filled');
-    const $reporting_percentage = $('#reporting-percentage');
+    const $reporting_ratio = $('#reporting-ratio');
     const $candidate_list = $('#candidate-list');
     $candidate_list.empty();
 
     const votes_left = 0;
     const call = callRace(ballotItem);
-    const call_results = (status === Status.EffectivelyFinal || status === Status.Final) && (!filterGroup);
+    const call_results = (remoteData.status === Status.EffectivelyFinal || remoteData.status === Status.Final) && (!filterGroup);
     const filtered_total_results = (filterGroup) ? totalVotes(ballotItem.ballotOptions, filterGroup) : call.total_votes;
 
-    const reporting = filtered_total_results / (filtered_total_results + votes_left) * 100;
+    const reporting = remoteData.precinctsReporting / remoteData.precinctsReporting * 100;
     $reporting_bar_filled.css('flex', `${reporting}%`);
-    updateHtml($reporting_percentage, preciseShare(reporting));
+    updateHtml($reporting_ratio, `${formatNum(remoteData.precinctsReporting)} / ${formatNum(remoteData.precinctsParticipating)}`);
 
     ballotItem.ballotOptions.sort((a, b) => candidateCompare(a, b, filterGroup));
     for (const ballotOption of ballotItem.ballotOptions) {
@@ -221,22 +236,30 @@ function displayNonStaticData(ballotItem: BallotItem, filterGroup?: ReportingGro
         $candidate_list.append($list_entry);
     }
 
+    const $margin_indicator = $('#margin-indicator');
     const $blank_votes_indicator = $('#blank-votes-indicator');
-    const $blank_votes_share = $('#blank-votes-share');
     const $total_votes_indicator = $('#total-votes-indicator');
-    //const $dem_turnout = $('#dem-turnout');
+
+    if (remoteData.status !== Status.AwaitingResults) {
+        const margin_share = call.margin / filtered_total_results;
+        const margin_num = `${call.margin} (${preciseShare(margin_share)})`;
+        updateHtml($margin_indicator, margin_num);
+
+    } else {
+        updateHtml($margin_indicator, '-');
+
+    }
 
     if (ballotItem.ballotsCast && !filterGroup) {
         const blank_votes = (ballotItem.ballotsCast as number) - call.total_votes;
         const blank_share = blank_votes / (ballotItem.ballotsCast as number) * 100;
 
-        updateHtml($blank_votes_indicator, formatNum(blank_votes));
-        updateHtml($blank_votes_share, preciseShare(blank_share));
-        $blank_votes_share.show();
+        const blank_num = `${formatNum(blank_votes)} (${preciseShare(blank_share)})`;
+        updateHtml($blank_votes_indicator, blank_num);
 
     } else {
         updateHtml($blank_votes_indicator, '-');
-        $blank_votes_share.hide();
+
     }
 
     updateHtml($total_votes_indicator, formatNum(filtered_total_results));

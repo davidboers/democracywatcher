@@ -24,19 +24,19 @@
                 </div>
                 <div style="display: grid;">
                     <button id="swap-party">Swap Party</button>
-                    <div class="button-set">
+                    <div class="button-set" style="gap: 1.5em">
                         <button id="back-to-select" title="Back to list of races"><i class="fa-solid fa-rotate-left"></i></button>
                         <button id="map" title="Map"><i class="fa-solid fa-map"></i></button>
                         <button id="marimekko" title="Marimekko"><i class="fa-solid fa-chart-area"></i></button>
                         <button id="progress-tracker" title="Progress tracker"><i class="fa-solid fa-chart-line"></i></button>
                     </div>
                 </div>
-                <div id="reporting">Reporting:
+                <div id="reporting">Precincts reporting:
                     <div class="reporting-bar bar">
                         <div id="reporting-bar-filled"></div>
                         <div class="bar-butt"></div>
                     </div>
-                    <span id="reporting-percentage"></span>
+                    <span id="reporting-ratio"></span>
                 </div>
             </div>
         </div>
@@ -45,15 +45,18 @@
 
         </div>
         <div id="stats">
-            <div style="place-content: center;">Blank: <span id="blank-votes-indicator"></span> (<span id="blank-votes-share"></span>)</div>
-            <div style="place-content: center;">Total votes: <span id="total-votes-indicator"></span>
-                <div class="bar">
-                    <div class="turnout-bar-filled dem"></div>
-                    <div class="turnout-bar-filled gop"></div>
-                    <div class="turnout-bar-filled np"></div>
+            <div id="stat-summary">
+                <div class="stat-div" id="margin">
+                    Margin: <span id="margin-indicator"></span>
+                </div>
+                <div class="stat-div" id="blank">
+                    Blank: <span id="blank-votes-indicator"></span>
+                </div>
+                <div class="stat-div" id="total">
+                    Total votes: <span id="total-votes-indicator"></span>
                 </div>
             </div>
-            <div class="button-set">
+            <div class="button-set" id="filter-vote-type">
                 <button id="filter-early-voting" class="filter-button" title="Early in Person">E</button>
                 <button id="filter-absentee" class="filter-button" title="Absentee by Mail">A</button>
                 <button id="filter-election-day" class="filter-button" title="Election Day">ED</button>

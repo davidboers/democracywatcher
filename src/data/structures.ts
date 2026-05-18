@@ -1,3 +1,4 @@
+import { sum } from '../utils.js';
 import { combineReportingStatusList, ReportingStatus, ReportingStatuses } from './reporting.js';
 
 export interface County {
@@ -14,9 +15,10 @@ export interface BallotItem {
     id: string;
     name: string;
     ballotOrder?: number;
+    precinctsParticipating?: number,
+    precinctsReporting?: number,
     ballotOptions: BallotOption[];
     ballotsCast?: number;
-    allowSwap?: boolean;
 };
 
 export function findBallotItem(ballotItems: BallotItem[], race_name: string, race_id?: string) {
@@ -51,10 +53,6 @@ export function totalVotes(ballotOptions: BallotOption[], filterGroup?: Reportin
     return sum(ballotOptions.map(bo => votesFor(bo, filterGroup)));
 }
 
-function sum(l: number[]): number {
-    return l.reduce((t, li) => t + li, 0);
-}
-
 export function isStateWide(countyReturns: LocalReturn[]) {
     return countyReturns.length === 159;
 }
@@ -63,6 +61,7 @@ export function isIncumbentTrailing(ballotItem: BallotItem): boolean {
     const incumbent = ballotItem.ballotOptions.find(bo =>
         bo.name.endsWith('(I)')
         || bo.name === 'Venola Mason'
+        || bo.name === 'Clay Fuller'
     );
 
     if (!incumbent) return false;
@@ -116,7 +115,7 @@ function getPrecinctReturnsWorker(localReturn: LocalReturn): LocalReturn[] {
 export function sumFromPrecinctResults(precinct: PrecinctResults) {
     const groupTallies = Object.values(precinct.groupResults);
     if (groupTallies.includes(-1)) return precinct.voteCount; // Accounting for obfuscation
-    return groupTallies.reduce((t, v) => t + v, 0);
+    return sum(groupTallies);
 }
 
 export interface BallotOption {

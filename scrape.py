@@ -64,8 +64,6 @@ def job():
                 del ballotItem['voteFor']
                 del ballotItem['contestType']
                 del ballotItem['rankedChoiceResults']
-                del ballotItem['precinctsParticipating']
-                del ballotItem['precinctsReporting']
 
                 # Strip Spanish translations in Gwinnett
                 if 'Gwinnett' in localResult['name']:
@@ -78,7 +76,6 @@ def job():
                     ballotOption['name'] = re.sub(spanish_regex, '', ballotOption['name'])
                     for precinctResults in ballotOption['precinctResults']:
                         del precinctResults['isVirtual']
-                        #del precinctResults['voteCount']
                         for groupResults in precinctResults['groupResults']:
                             del groupResults['isFromVirtualPrecinct']
 
