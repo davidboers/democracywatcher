@@ -66,7 +66,8 @@ export function isIncumbentTrailing(ballotItem: BallotItem): boolean {
 
     if (!incumbent) return false;
     if (totalVotes(ballotItem.ballotOptions) === 0) return false;
-    /// Exclude disqualified/withdrawn candidates
+    if (['Freddie Powell (I)', 'David Scott (I)'].includes(incumbent.name)) return false;
+
     const leader = leading(ballotItem.ballotOptions);
     return incumbent !== leader;
 };
