@@ -6,6 +6,8 @@ import { callRace, Runoff, Special, Status, statusString, Winner } from './race-
 import { formatNum, preciseShare, queryCounty, redirectWithRaceName, updateHtml } from './utils.js';
 import { ReportingGroup } from './data/structures.js';
 
+import partyQuestions from './party-questions.json';
+
 var remoteData = {
     status: Status.AwaitingResults,
     precinctsParticipating: 0,
@@ -149,6 +151,14 @@ export function setRace(ballotItem: BallotItem) {
                 $swap_party.html('No primary for the other party in this race.');
             });
     });
+
+    const $party_question = $('#party-question');
+    if (Object.hasOwn(partyQuestions, rn)) {
+        $party_question.html(partyQuestions[rn as keyof typeof partyQuestions]);
+        $party_question.show();
+    } else {
+        $party_question.hide();
+    }
 
     displayNonStaticData(ballotItem);
 
