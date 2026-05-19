@@ -73,7 +73,6 @@ export function buildRegionalStrengthBreakdown(
         const votebase_share = total_votes / grand_total * 100;
         const color = (typeof leader === 'string') ? EMPTY_COLOR : getColor(ballotOptions, leader);
 
-        /// Add list of counties
         $tbody.append(`
             <tr id="region-select-${regionIDName(localReturn.jurisName)}">
                 ${(doNumber) ? `<td class="reg-brk-num">${num}</td>` : ''}

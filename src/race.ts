@@ -116,7 +116,6 @@ export function setRace(ballotItem: BallotItem) {
         $('#status-special').empty();
     }
 
-    /// Check whether there actually is a primary on the other side
     if (party === np) {
         $swap_party.hide();
 
