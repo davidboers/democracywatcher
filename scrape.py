@@ -73,6 +73,9 @@ def job():
                     if ballotOption['name'] == 'Deandre Mathis':
                         ballotOption['name'] = 'DeAndre Mathis'
 
+                    if ballotOption['name'] == 'Yes / Sí':
+                        ballotOption['name'] = 'Yes'
+
                     del ballotOption['politicalParty']
                     del ballotOption['groupResults']
 

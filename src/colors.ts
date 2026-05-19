@@ -39,7 +39,7 @@ var sortedPalettes: { [key: string]: string[] } = {};
 
 export function getColor(all_options: BallotOption[], option: BallotOption) {
     // Referendum colors
-    if (['Yes', 'Yes / Sì'].includes(option.name)) { // Spanish should be stripped out, this is just a safeguard
+    if (['Yes', 'Yes / Sí'].includes(option.name)) { // Spanish should be stripped out, this is just a safeguard
         return 'green';
     }
 
