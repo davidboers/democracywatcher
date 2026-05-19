@@ -1,4 +1,4 @@
-import { getFullResults } from './data/media-export.js';
+import { getFullResults, getLocalResults } from './data/media-export.js';
 import { BallotItem, BallotOption, totalVotes, votesFor } from './data/structures.js';
 
 import { candidateLegend, getColor } from './colors.js';
@@ -185,12 +185,16 @@ function drawLine(width: number, height: number, timeline: Timeline) {
     return d;
 }
 
-const awaitResultsWithTimestmap = (race_name: string) => async function (ts: TimestampedFile): Promise<TimestampedBallotItem> {
-    const ballotItem = await getFullResults(race_name, `data/${ts.file}`);
+const awaitResultsWithTimestamp = (race_name: string, county?: string) => async function (ts: TimestampedFile): Promise<TimestampedBallotItem> {
+    const file = `data/${ts.file}`;
+    const ballotItem = (county) ? await getFullResults(race_name, file) : (await getLocalResults(race_name, file))[0].ballotItem;
     return { ballotItem, timestamp: ts.timestamp };
 }
 
-function failMessage() {
+function failMessage(reason?: any) {
+    if (reason)
+        console.warn(reason);
+    $('#loading').hide();
     $('#error').html('<p>Awaiting results.</p>');
 }
 
@@ -200,10 +204,10 @@ void function () {
     if (!race_name) return;
 
     const base = window.location.origin.replace(/:[0-9]{4}/, '');
-    fetch(`${base}:5000/results-timestamps`)
+    fetch(`${base}:5000/results-timestamps`, { cache: 'no-cache' })
         .then(response => response.json())
-        .then((data: TimestampedFile[]) => Promise.allSettled(data.map(awaitResultsWithTimestmap(race_name))))
+        .then((data: TimestampedFile[]) => Promise.allSettled(data.map(awaitResultsWithTimestamp(race_name, county || undefined))))
         .then(promises => promises.filter(p => p.status === 'fulfilled').map(result => result.value))
         .then(drawProgress)
-    //.error(failMessage);
+        .catch(failMessage);
 }();
