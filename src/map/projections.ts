@@ -1,5 +1,5 @@
 
-import { getLocalResults, localReturnsForRace } from '../data/media-export.js';
+import { getAllLocalResults, localReturnsForRace } from '../data/media-export.js';
 import { ballotItemReportingStatusFromPrecinctLevel, BallotOption, County, leading, LocalReturn } from '../data/structures.js';
 
 import { sum } from '../utils.js';
@@ -9,7 +9,7 @@ import { buildRegionalStrengthBreakdown, changeSelection, getNotHover } from './
 
 export async function setUpProjection(race_name: string, topojsonPath: string, buttonID: string, clipGroup: ClipGroup) {
     const topology = await fetchTopography(topojsonPath);
-    getLocalResults()
+    getAllLocalResults()
         .then(counties => getClippedRaces(clipGroup, counties, race_name))
         .then(localReturns => drawMap(topology, localReturns))
         .then(([localReturns, path_chain, _]) => recolorMap(localReturns, path_chain))

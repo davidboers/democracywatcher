@@ -58,24 +58,16 @@ export async function getFullResults(race_name: string, url: string = DEFAULT_SO
 }
 
 export async function withFullResults<T>(pred: (_: BallotItem) => T, race_name: string, url: string = DEFAULT_SOURCE): Promise<T> {
-    return withAllFullResults(ballotItems => {
-        const item = findBallotItem(ballotItems, race_name);
-
-        if (!item) {
-            throw new Error(`Cannot find race ${race_name}`);
-        }
-
-        return pred(item);
-    }, url);
+    return getFullResults(race_name, url).then(pred);
 }
 
-export async function getLocalResults(url: string = DEFAULT_SOURCE): Promise<County[]> {
+export async function getAllLocalResults(url: string = DEFAULT_SOURCE): Promise<County[]> {
     return worker(url)
         .then(response => response.localResults);
 }
 
-export async function withLocalResults<T>(pred: (_: LocalReturn[]) => T, race_name: string, county?: string, url: string = DEFAULT_SOURCE): Promise<T> {
-    return getLocalResults(url)
+export async function getLocalResults(race_name: string, county?: string, url: string = DEFAULT_SOURCE): Promise<LocalReturn[]> {
+    return getAllLocalResults(url)
         .then(counties => {
             let localReturns = localReturnsForRace(counties, race_name);
 
@@ -83,8 +75,12 @@ export async function withLocalResults<T>(pred: (_: LocalReturn[]) => T, race_na
                 localReturns = localReturns.filter(lr => formatCountyNameAsValue(lr.jurisName) === county);
             }
 
-            return pred(localReturns);
+            return localReturns;
         });
+}
+
+export async function withLocalResults<T>(pred: (_: LocalReturn[]) => T, race_name: string, county?: string, url: string = DEFAULT_SOURCE): Promise<T> {
+    return getLocalResults(race_name, county, url).then(pred);
 }
 
 export function localReturnsForRace(counties: County[], race_name: string, countyName?: string): LocalReturn[] {
